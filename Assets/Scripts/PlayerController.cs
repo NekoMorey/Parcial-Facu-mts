@@ -15,11 +15,14 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private bool isGrounded;
 
+    private TargetLock targetLock;
+
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         rb = GetComponent<Rigidbody>();
+        targetLock = GetComponent<TargetLock>(); 
         if (cameraTransform == null && Camera.main != null)
         {
             cameraTransform = Camera.main.transform;
@@ -28,36 +31,51 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // Ground Check
         isGrounded = Physics.Raycast(transform.position, Vector3.down, 1.1f);
 
-        // Movement
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
         Vector3 inputDir = new Vector3(h, 0, v).normalized;
 
-        if (inputDir.magnitude >= 0.1f)
+        if (targetLock != null && targetLock.IsLockedOn && targetLock.currentTarget != null)
         {
-            float targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
-            transform.rotation = Quaternion.Euler(0, targetAngle, 0);
+            Vector3 dirToBoss = (targetLock.currentTarget.position - transform.position).normalized;
+            dirToBoss.y = 0;
+            if (dirToBoss != Vector3.zero)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dirToBoss), Time.deltaTime * 12f);
+            }
 
-            Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
-            rb.MovePosition(transform.position + moveDir * moveSpeed * Time.deltaTime);
+            if (inputDir.magnitude >= 0.1f)
+            {
+                Vector3 moveDir = cameraTransform.right * h + cameraTransform.forward * v;
+                moveDir.y = 0;
+                rb.MovePosition(transform.position + moveDir.normalized * moveSpeed * Time.deltaTime);
+            }
+        }
+        else
+        {
+            if (inputDir.magnitude >= 0.1f)
+            {
+                float targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
+                transform.rotation = Quaternion.Euler(0, targetAngle, 0);
+
+                Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
+                rb.MovePosition(transform.position + moveDir * moveSpeed * Time.deltaTime);
+            }
         }
 
-        // Jump
+      
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
 
-        // Throw Rock Mechanics
         if (Input.GetMouseButtonDown(0))
         {
             ThrowRock();
         }
 
-        // Raycast Interaction
         if (Input.GetKeyDown(KeyCode.E))
         {
             TryInteract();
@@ -71,8 +89,8 @@ public class PlayerController : MonoBehaviour
         Rigidbody rockRb = rock.GetComponent<Rigidbody>();
         if (rockRb != null)
         {
-            Vector3 throwDir = cameraTransform.forward + Vector3.up * 0.2f;
-            rockRb.AddForce(throwDir * throwForce, ForceMode.Impulse);
+            Vector3 throwDir = transform.forward + Vector3.up * 0.15f;
+            rockRb.AddForce(throwDir.normalized * throwForce, ForceMode.Impulse);
         }
     }
 

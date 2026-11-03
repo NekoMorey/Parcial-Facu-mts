@@ -1,5 +1,4 @@
 using UnityEngine;
-using Unity.Cinemachine;
 
 public class TargetLock : MonoBehaviour
 {
@@ -9,16 +8,15 @@ public class TargetLock : MonoBehaviour
     public LayerMask targetLayers;
 
     [Header("Referencias")]
-    public CinemachineCamera cinemachineCam;
     public Transform currentTarget;
 
-    private bool isLockedOn = false;
+    public bool IsLockedOn { get; private set; } = false;
 
     void Update()
     {
         if (Input.GetKeyDown(lockKey))
         {
-            if (isLockedOn)
+            if (IsLockedOn)
             {
                 UnlockTarget();
             }
@@ -28,7 +26,7 @@ public class TargetLock : MonoBehaviour
             }
         }
 
-        if (isLockedOn && currentTarget != null)
+        if (IsLockedOn && currentTarget != null)
         {
             float distance = Vector3.Distance(transform.position, currentTarget.position);
             if (distance > targetNoticeDistance || !currentTarget.gameObject.activeInHierarchy)
@@ -60,26 +58,15 @@ public class TargetLock : MonoBehaviour
         if (closestTarget != null)
         {
             currentTarget = closestTarget;
-            isLockedOn = true;
-
-         
-            if (cinemachineCam != null)
-            {
-                cinemachineCam.LookAt = currentTarget;
-            }
+            IsLockedOn = true;
             Debug.Log($"[Lock-On] Objetivo fijado: {currentTarget.name}");
         }
     }
 
     void UnlockTarget()
     {
-        isLockedOn = false;
+        IsLockedOn = false;
         currentTarget = null;
-
-        if (cinemachineCam != null)
-        {
-            cinemachineCam.LookAt = transform; 
-        }
         Debug.Log("[Lock-On] Objetivo liberado");
     }
 }
