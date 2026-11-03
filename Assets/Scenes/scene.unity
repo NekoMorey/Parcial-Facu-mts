@@ -1397,6 +1397,7 @@ GameObject:
   - component: {fileID: 1050081576}
   - component: {fileID: 1050081575}
   - component: {fileID: 1050081580}
+  - component: {fileID: 1050081582}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1565,6 +1566,25 @@ MonoBehaviour:
   bossesDefeated: 0
   staminaRegenRate: 15
   staminaRegenDelay: 1.5
+--- !u!114 &1050081582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1050081574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d679ad547580a2f43abeddaae439edb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TargetLock
+  lockKey: 114
+  targetNoticeDistance: 20
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  cinemachineCam: {fileID: 925585098}
+  currentTarget: {fileID: 0}
 --- !u!1 &1301628748
 GameObject:
   m_ObjectHideFlags: 0
@@ -2353,7 +2373,7 @@ GameObject:
   - component: {fileID: 2082327544}
   m_Layer: 0
   m_Name: Boss
-  m_TagString: Untagged
+  m_TagString: Boss
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
