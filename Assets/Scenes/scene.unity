@@ -543,7 +543,7 @@ MonoBehaviour:
         InputAction: {fileID: 0}
         Gain: 1
         LegacyInput: Mouse X
-        LegacyGain: 1
+        LegacyGain: 20
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
@@ -556,7 +556,7 @@ MonoBehaviour:
         InputAction: {fileID: 0}
         Gain: 1
         LegacyInput: Mouse Y
-        LegacyGain: 1
+        LegacyGain: 20
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
