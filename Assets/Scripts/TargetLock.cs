@@ -1,16 +1,28 @@
 using UnityEngine;
+using Unity.Cinemachine;
 
 public class TargetLock : MonoBehaviour
 {
     [Header("Configuración de Lock-On")]
     public KeyCode lockKey = KeyCode.R;
-    public float targetNoticeDistance = 20f;
+    public float targetNoticeDistance = 25f;
     public LayerMask targetLayers;
 
     [Header("Referencias")]
+    public CinemachineCamera cinemachineCam;
     public Transform currentTarget;
 
     public bool IsLockedOn { get; private set; } = false;
+
+    private CinemachineOrbitalFollow orbitalFollow;
+
+    void Start()
+    {
+        if (cinemachineCam != null)
+        {
+            orbitalFollow = cinemachineCam.GetComponent<CinemachineOrbitalFollow>();
+        }
+    }
 
     void Update()
     {
@@ -33,6 +45,24 @@ public class TargetLock : MonoBehaviour
             {
                 UnlockTarget();
             }
+            else
+            {
+                UpdateOrbitalLockOn();
+            }
+        }
+    }
+
+    void UpdateOrbitalLockOn()
+    {
+        if (orbitalFollow == null || currentTarget == null) return;
+
+        Vector3 dirToTarget = (currentTarget.position - transform.position).normalized;
+        dirToTarget.y = 0;
+
+        if (dirToTarget != Vector3.zero)
+        {
+            float targetAngle = Mathf.Atan2(dirToTarget.x, dirToTarget.z) * Mathf.Rad2Deg;
+            orbitalFollow.HorizontalAxis.Value = Mathf.LerpAngle(orbitalFollow.HorizontalAxis.Value, targetAngle, Time.deltaTime * 10f);
         }
     }
 
@@ -59,14 +89,17 @@ public class TargetLock : MonoBehaviour
         {
             currentTarget = closestTarget;
             IsLockedOn = true;
-            Debug.Log($"[Lock-On] Objetivo fijado: {currentTarget.name}");
+
+            if (orbitalFollow == null && cinemachineCam != null)
+            {
+                orbitalFollow = cinemachineCam.GetComponent<CinemachineOrbitalFollow>();
+            }
         }
     }
 
-    void UnlockTarget()
+    public void UnlockTarget()
     {
         IsLockedOn = false;
         currentTarget = null;
-        Debug.Log("[Lock-On] Objetivo liberado");
     }
 }

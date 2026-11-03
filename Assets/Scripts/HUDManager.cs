@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; // Si usás TextMeshPro
+using TMPro; 
 
 public class HUDManager : MonoBehaviour
 {
@@ -12,11 +12,11 @@ public class HUDManager : MonoBehaviour
     [Header("Boss HUD")]
     public BossStats bossStats;
     public Slider bossHealthSlider;
-    public GameObject bossHUDPanel; // Contenedor para ocultarlo si no hay Boss activo
+    public GameObject bossHUDPanel;
 
     void Update()
     {
-        // Actualizar Player
+ 
         if (playerStats != null)
         {
             if (healthSlider != null)

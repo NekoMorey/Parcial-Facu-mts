@@ -1,12 +1,19 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    public float moveSpeed = 5f;
-    public float strafeSpeedMultiplier = 0.7f;
-    public float jumpForce = 5f;
+    public float moveSpeed = 6f;
+    public float strafeSpeedMultiplier = 0.75f;
+    public float rotationSpeed = 15f;
     public Transform cameraTransform;
+
+    [Header("Dodge / Roll")]
+    public float dodgeSpeed = 16f;
+    public float dodgeDuration = 0.3f;
+    public float dodgeStaminaCost = 25f;
+    private bool isDodging = false;
 
     [Header("Throwing")]
     public GameObject rockPrefab;
@@ -14,8 +21,11 @@ public class PlayerController : MonoBehaviour
     public float throwForce = 15f;
 
     private Rigidbody rb;
-    private bool isGrounded;
     private TargetLock targetLock;
+    private PlayerStats playerStats;
+
+    private Vector3 moveInput;
+    private Vector3 currentDodgeDir;
 
     void Start()
     {
@@ -23,64 +33,117 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
         rb = GetComponent<Rigidbody>();
         targetLock = GetComponent<TargetLock>();
+        playerStats = GetComponent<PlayerStats>();
 
         if (cameraTransform == null && Camera.main != null)
         {
             cameraTransform = Camera.main.transform;
         }
+
+        rb.freezeRotation = true;
     }
 
     void Update()
     {
-        isGrounded = Physics.Raycast(transform.position, Vector3.down, 1.1f);
+        float h = Input.GetAxisRaw("Horizontal");
+        float v = Input.GetAxisRaw("Vertical");
+        moveInput = new Vector3(h, 0, v).normalized;
 
-        float h = Input.GetAxis("Horizontal");
-        float v = Input.GetAxis("Vertical");
-        Vector3 inputDir = new Vector3(h, 0, v).normalized;
+        // Orientación obligatoria al objetivo fijado (Lock-On)
+        OrientToLockTarget();
 
+        // Dodge / Esquive
+        if (Input.GetKeyDown(KeyCode.Space) && !isDodging)
+        {
+            if (playerStats != null && playerStats.UseStamina(dodgeStaminaCost))
+            {
+                StartCoroutine(PerformDodge());
+            }
+        }
+
+        // Disparo de rocas
+        if (Input.GetMouseButtonDown(0) && !isDodging)
+        {
+            ThrowRock();
+        }
+
+        // Interacción
+        if (Input.GetKeyDown(KeyCode.E) && !isDodging)
+        {
+            TryInteract();
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (isDodging)
+        {
+            rb.linearVelocity = currentDodgeDir * dodgeSpeed + new Vector3(0, rb.linearVelocity.y, 0);
+            return;
+        }
+
+        if (moveInput.magnitude < 0.1f)
+        {
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+            OrientToLockTarget();
+            return;
+        }
+
+        if (targetLock != null && targetLock.IsLockedOn && targetLock.currentTarget != null)
+        {
+            // --- MOVIMIENTO MODO COMBATE (STRAFE) ---
+            Vector3 moveDir = cameraTransform.right * moveInput.x + cameraTransform.forward * moveInput.z;
+            moveDir.y = 0;
+            moveDir.Normalize();
+
+            float speed = moveSpeed * strafeSpeedMultiplier;
+            rb.linearVelocity = moveDir * speed + new Vector3(0, rb.linearVelocity.y, 0);
+
+            OrientToLockTarget();
+        }
+        else
+        {
+            // --- MOVIMIENTO MODO LIBRE ---
+            float targetAngle = Mathf.Atan2(moveInput.x, moveInput.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
+            Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+
+            Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
+            rb.linearVelocity = moveDir * moveSpeed + new Vector3(0, rb.linearVelocity.y, 0);
+        }
+    }
+
+    private void OrientToLockTarget()
+    {
         if (targetLock != null && targetLock.IsLockedOn && targetLock.currentTarget != null)
         {
             Vector3 dirToBoss = (targetLock.currentTarget.position - transform.position).normalized;
             dirToBoss.y = 0;
             if (dirToBoss != Vector3.zero)
             {
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dirToBoss), Time.deltaTime * 12f);
+                transform.rotation = Quaternion.LookRotation(dirToBoss);
             }
+        }
+    }
 
-            if (inputDir.magnitude >= 0.1f)
-            {
-                Vector3 moveDir = cameraTransform.right * h + cameraTransform.forward * v;
-                moveDir.y = 0;
-                float currentSpeed = moveSpeed * strafeSpeedMultiplier;
-                rb.MovePosition(transform.position + moveDir.normalized * currentSpeed * Time.deltaTime);
-            }
+    IEnumerator PerformDodge()
+    {
+        isDodging = true;
+
+        if (moveInput.magnitude >= 0.1f)
+        {
+            currentDodgeDir = cameraTransform.right * moveInput.x + cameraTransform.forward * moveInput.z;
+            currentDodgeDir.y = 0;
+            currentDodgeDir.Normalize();
         }
         else
         {
-            if (inputDir.magnitude >= 0.1f)
-            {
-                float targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
-                transform.rotation = Quaternion.Euler(0, targetAngle, 0);
-
-                Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
-                rb.MovePosition(transform.position + moveDir * moveSpeed * Time.deltaTime);
-            }
+            currentDodgeDir = transform.forward;
         }
 
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        }
+        yield return new WaitForSeconds(dodgeDuration);
 
-        if (Input.GetMouseButtonDown(0))
-        {
-            ThrowRock();
-        }
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            TryInteract();
-        }
+        isDodging = false;
     }
 
     void ThrowRock()
