@@ -18,10 +18,9 @@ public class Rock : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        DestructibleWall wall = collision.gameObject.GetComponent<DestructibleWall>();
-        if (wall != null)
+        if (collision.gameObject.CompareTag("Destructible") || collision.gameObject.name.Contains("Pared"))
         {
-            wall.Hit();
+            Destroy(collision.gameObject); // Destruye la pared al impactar
             Destroy(gameObject);
             return;
         }

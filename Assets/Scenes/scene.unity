@@ -2024,7 +2024,7 @@ GameObject:
   - component: {fileID: 1725393319}
   m_Layer: 0
   m_Name: ParedDestructible
-  m_TagString: Breakable
+  m_TagString: Destructible
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
