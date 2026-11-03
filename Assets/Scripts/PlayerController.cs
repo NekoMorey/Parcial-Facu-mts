@@ -4,6 +4,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
+    public float strafeSpeedMultiplier = 0.7f;
     public float jumpForce = 5f;
     public Transform cameraTransform;
 
@@ -14,7 +15,6 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody rb;
     private bool isGrounded;
-
     private TargetLock targetLock;
 
     void Start()
@@ -22,7 +22,8 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         rb = GetComponent<Rigidbody>();
-        targetLock = GetComponent<TargetLock>(); 
+        targetLock = GetComponent<TargetLock>();
+
         if (cameraTransform == null && Camera.main != null)
         {
             cameraTransform = Camera.main.transform;
@@ -50,7 +51,8 @@ public class PlayerController : MonoBehaviour
             {
                 Vector3 moveDir = cameraTransform.right * h + cameraTransform.forward * v;
                 moveDir.y = 0;
-                rb.MovePosition(transform.position + moveDir.normalized * moveSpeed * Time.deltaTime);
+                float currentSpeed = moveSpeed * strafeSpeedMultiplier;
+                rb.MovePosition(transform.position + moveDir.normalized * currentSpeed * Time.deltaTime);
             }
         }
         else
@@ -65,7 +67,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-      
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
@@ -96,14 +97,12 @@ public class PlayerController : MonoBehaviour
 
     void TryInteract()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, 2f);
-        foreach (Collider col in hits)
+        if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 2.5f))
         {
-            IInteractable interactable = col.GetComponent<IInteractable>();
+            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
             if (interactable != null)
             {
                 interactable.Interact();
-                break;
             }
         }
     }

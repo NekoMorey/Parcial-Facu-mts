@@ -2,17 +2,38 @@ using UnityEngine;
 
 public class Rock : MonoBehaviour
 {
-    private void Start()
+    public float lifeTime = 5f;
+    private float damage = 10f;
+
+    void Start()
     {
-        Destroy(gameObject, 5f); // Auto destruir después de 5 segs
+        PlayerStats playerStats = FindFirstObjectByType<PlayerStats>();
+        if (playerStats != null)
+        {
+            damage = playerStats.baseStrength;
+        }
+
+        Destroy(gameObject, lifeTime);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Breakable"))
+        DestructibleWall wall = collision.gameObject.GetComponent<DestructibleWall>();
+        if (wall != null)
         {
-            Destroy(collision.gameObject);
+            wall.Hit();
             Destroy(gameObject);
+            return;
         }
+
+        BossStats boss = collision.gameObject.GetComponent<BossStats>();
+        if (boss != null)
+        {
+            boss.TakeDamage(damage);
+            Destroy(gameObject);
+            return;
+        }
+
+        Destroy(gameObject, 0.1f);
     }
 }

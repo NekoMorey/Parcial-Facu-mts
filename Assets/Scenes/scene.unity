@@ -1417,7 +1417,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50588b442851c1944ba90fbfd7062e91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  moveSpeed: 12
+  moveSpeed: 20
+  strafeSpeedMultiplier: 0.7
   jumpForce: 5
   cameraTransform: {fileID: 690278479}
   rockPrefab: {fileID: 3217686148763956118, guid: c136192111db1194a8f08a6430c8712b, type: 3}
@@ -1583,7 +1584,6 @@ MonoBehaviour:
   targetLayers:
     serializedVersion: 2
     m_Bits: 1
-  cinemachineCam: {fileID: 925585098}
   currentTarget: {fileID: 0}
 --- !u!1 &1301628748
 GameObject:
