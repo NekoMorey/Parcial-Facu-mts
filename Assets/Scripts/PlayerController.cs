@@ -78,13 +78,14 @@ public class PlayerController : MonoBehaviour
 
     void TryInteract()
     {
-        RaycastHit hit;
-        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, 4f))
+        Collider[] hits = Physics.OverlapSphere(transform.position, 2f);
+        foreach (Collider col in hits)
         {
-            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+            IInteractable interactable = col.GetComponent<IInteractable>();
             if (interactable != null)
             {
                 interactable.Interact();
+                break;
             }
         }
     }
