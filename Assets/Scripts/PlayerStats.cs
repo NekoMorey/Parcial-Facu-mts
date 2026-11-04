@@ -1,37 +1,48 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("Stats Base")]
+    [Header("Salud")]
     public float maxHP = 100f;
     public float currentHP;
+
+    [Header("Stamina")]
     public float maxStamina = 100f;
     public float currentStamina;
-    public float baseStrength = 10f;
-    public int bossesDefeated = 0;
 
-    [Header("Regeneración de Estamina")]
-    public float staminaRegenRate = 15f;
-    public float staminaRegenDelay = 1.5f;
-    private float regenTimer;
+    [Header("Estadísticas de Ataque y Nivel")]
+    public int playerLevel = 1;
+    public float baseStrength = 10f;
+
+    [Header("UI Game Over")]
+    public GameObject gameOverPanel;
 
     void Start()
     {
         currentHP = maxHP;
         currentStamina = maxStamina;
+
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(false);
+        }
     }
 
-    void Update()
+    public void TakeDamage(float damage)
     {
-
-        if (regenTimer > 0)
+        PlayerController controller = GetComponent<PlayerController>();
+        if (controller != null && controller.isInvulnerable)
         {
-            regenTimer -= Time.deltaTime;
+            return;
         }
-        else if (currentStamina < maxStamina)
+
+        currentHP -= damage;
+        currentHP = Mathf.Clamp(currentHP, 0f, maxHP);
+
+        if (currentHP <= 0f)
         {
-            currentStamina += staminaRegenRate * Time.deltaTime;
-            currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
+            Die();
         }
     }
 
@@ -40,30 +51,35 @@ public class PlayerStats : MonoBehaviour
         if (currentStamina >= amount)
         {
             currentStamina -= amount;
-            regenTimer = staminaRegenDelay;
             return true;
         }
         return false;
     }
 
-    public void TakeDamage(float amount)
-    {
-        currentHP -= amount;
-        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
-        if (currentHP <= 0)
-        {
-            Debug.Log("Jugador derrotado");
-        }
-    }
-
     public void RewardBossVictory()
     {
-        bossesDefeated++;
-        maxHP += 25f;           
-        baseStrength += 5f;     
-        maxStamina += 10f;     
-        currentHP = maxHP;   
-        currentStamina = maxStamina;
-        Debug.Log($"¡Victoria contra el Boss #{bossesDefeated}! Stats aumentadas: MaxHP = {maxHP}, Fuerza = {baseStrength}");
+        playerLevel++;
+        baseStrength += 15f;
+        maxHP += 50f;
+        currentHP = maxHP;
+    }
+
+    private void Die()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+        }
+
+        Time.timeScale = 0f;
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

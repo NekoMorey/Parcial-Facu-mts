@@ -1,98 +1,166 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class BossAI : MonoBehaviour
 {
-    [Header("Configuración de Ataque")]
-    public float chaseRadius = 25f;
-    public float attackRadius = 3.5f;
-    public float attackDamage = 20f;
-    public float attackCooldown = 1.5f;
-
     [Header("Referencias")]
-    public Transform playerTransform;
-
+    public Transform player;
     private NavMeshAgent agent;
-    private PlayerStats playerStats;
-    private float nextAttackTime = 0f;
+    private Animator animator;
+
+    [Header("Rangos y Detección")]
+    public float detectionRange = 15.0f;
+    public float attackRange = 2.5f;
+    public float chargeRange = 6.0f;
+    public float timeBetweenAttacks = 0.8f;
+    private float attackCooldown = 0f;
+
+    [Header("Estadísticas de Ataque")]
+    public float meleeDamage = 15f;
+    public float chargeDamage = 25f;
+    public float chargeSpeed = 16f;
+    private float originalSpeed;
+    private bool isAttacking = false;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        BuscarJugador();
-    }
+        animator = GetComponent<Animator>();
 
-    void BuscarJugador()
-    {
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj == null)
-        {
-            playerStats = FindFirstObjectByType<PlayerStats>();
-            if (playerStats != null) playerObj = playerStats.gameObject;
-        }
+        if (agent != null) originalSpeed = agent.speed;
 
-        if (playerObj != null)
+        if (player == null)
         {
-            playerTransform = playerObj.transform;
-            playerStats = playerObj.GetComponent<PlayerStats>();
+            GameObject p = GameObject.FindWithTag("Player");
+            if (p != null) player = p.transform;
         }
     }
 
     void Update()
     {
-        if (playerTransform == null || playerStats == null)
+        if (player == null || isAttacking) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        attackCooldown -= Time.deltaTime;
+
+        if (distanceToPlayer > detectionRange)
         {
-            BuscarJugador();
+            agent.isStopped = true;
             return;
         }
 
-        float distance = Vector3.Distance(transform.position, playerTransform.position);
-
-        if (distance <= chaseRadius && distance > attackRadius)
+        if (distanceToPlayer <= attackRange)
         {
-            if (agent != null && agent.isOnNavMesh)
+            agent.isStopped = true;
+            LookAtPlayer();
+
+            if (attackCooldown <= 0f)
             {
-                agent.isStopped = false;
-                agent.SetDestination(playerTransform.position);
+                ExecuteMeleeAttack();
             }
         }
-        else if (distance <= attackRadius)
+        else if (distanceToPlayer >= chargeRange && attackCooldown <= 0f)
         {
-            if (agent != null && agent.isOnNavMesh)
-            {
-                agent.isStopped = true;
-            }
-
-            
-            Vector3 dir = (playerTransform.position - transform.position).normalized;
-            dir.y = 0;
-            if (dir != Vector3.zero)
-            {
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 10f);
-            }
-
-            if (Time.time >= nextAttackTime)
-            {
-                AttackPlayer();
-                nextAttackTime = Time.time + attackCooldown;
-            }
+            StartCoroutine(ChargeRoutine());
+        }
+        else
+        {
+            agent.isStopped = false;
+            agent.speed = originalSpeed;
+            agent.SetDestination(player.position);
         }
     }
 
-    void AttackPlayer()
+    void LookAtPlayer()
     {
-        if (playerStats != null)
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0;
+        if (direction != Vector3.zero)
         {
-            playerStats.TakeDamage(attackDamage);
-            Debug.Log($"[Boss] Golpeó al jugador. HP restante: {playerStats.currentHP}");
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 12f);
         }
     }
 
-    private void OnDrawGizmosSelected()
+    void ExecuteMeleeAttack()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, chaseRadius);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRadius);
+        isAttacking = true;
+        attackCooldown = timeBetweenAttacks;
+
+        if (animator != null) animator.SetTrigger("Attack");
+
+        Invoke(nameof(ApplyMeleeDamage), 0.3f);
+    }
+
+    void ApplyMeleeDamage()
+    {
+        if (player != null && Vector3.Distance(transform.position, player.position) <= attackRange + 1f)
+        {
+            PlayerStats stats = player.GetComponent<PlayerStats>();
+            if (stats != null)
+            {
+                stats.TakeDamage(meleeDamage);
+            }
+        }
+        isAttacking = false;
+    }
+
+    IEnumerator ChargeRoutine()
+    {
+        isAttacking = true;
+        attackCooldown = timeBetweenAttacks + 1f;
+
+        agent.isStopped = true;
+        Vector3 targetDirection = (player.position - transform.position).normalized;
+        targetDirection.y = 0;
+        if (targetDirection != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(targetDirection);
+        }
+
+        yield return new WaitForSeconds(0.3f);
+
+        agent.isStopped = false;
+        agent.speed = chargeSpeed;
+        agent.acceleration = 40f;
+
+        Vector3 chargeTarget = player.position + targetDirection * 4f;
+        agent.SetDestination(chargeTarget);
+
+        float chargeTimer = 0f;
+        bool hitPlayer = false;
+
+        while (chargeTimer < 1.0f)
+        {
+            chargeTimer += Time.deltaTime;
+
+            if (!hitPlayer && Vector3.Distance(transform.position, player.position) <= 2f)
+            {
+                PlayerStats stats = player.GetComponent<PlayerStats>();
+                if (stats != null)
+                {
+                    stats.TakeDamage(chargeDamage);
+                }
+                hitPlayer = true;
+            }
+
+            yield return null;
+        }
+
+        agent.speed = originalSpeed;
+        agent.acceleration = 8f;
+        isAttacking = false;
+    }
+
+    void Die()
+    {
+        RewardChest chest = FindFirstObjectByType<RewardChest>();
+        if (chest != null)
+        {
+            chest.isBossDefeated = true;
+        }
+
+        Destroy(gameObject);
     }
 }

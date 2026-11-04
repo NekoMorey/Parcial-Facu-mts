@@ -3,170 +3,300 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Movement")]
-    public float moveSpeed = 6f;
-    public float strafeSpeedMultiplier = 0.75f;
-    public float rotationSpeed = 15f;
-    public Transform cameraTransform;
-
-    [Header("Dodge / Roll")]
-    public float dodgeSpeed = 16f;
-    public float dodgeDuration = 0.3f;
-    public float dodgeStaminaCost = 25f;
-    private bool isDodging = false;
-
-    [Header("Throwing")]
-    public GameObject rockPrefab;
-    public Transform throwPoint;
-    public float throwForce = 15f;
-
+    private CharacterController controller;
     private Rigidbody rb;
-    private TargetLock targetLock;
     private PlayerStats playerStats;
+    private Camera mainCamera;
 
-    private Vector3 moveInput;
-    private Vector3 currentDodgeDir;
+    [Header("Movimiento")]
+    public float moveSpeed = 6f;
+    public float rotationSpeed = 12f;
+
+    [Header("Target Lock / Fijar Enemigo")]
+    public Transform targetEnemy;
+    public bool isLockedOn = false;
+    public float lockOnRange = 40f;
+
+    [Header("Disparo / Ataque")]
+    public GameObject rockPrefab;
+    public Transform spawnPoint;
+    public float rockForce = 25f;
+    public float shootCooldown = 0.5f;
+    private float lastShootTime = 0f;
+
+    [Header("Esquive / Dodge")]
+    public float dodgeSpeed = 16f;
+    public float dodgeDuration = 0.35f;
+    public float dodgeStaminaCost = 25f;
+    public float dodgeCooldown = 0.6f;
+
+    private bool isDodging = false;
+    private bool canDodge = true;
+    [HideInInspector] public bool isInvulnerable = false;
+
+    [Header("UI Sistema de Pausa")]
+    public GameObject pauseMenuPanel;
+    [HideInInspector] public bool isPaused = false;
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        controller = GetComponent<CharacterController>();
         rb = GetComponent<Rigidbody>();
-        targetLock = GetComponent<TargetLock>();
         playerStats = GetComponent<PlayerStats>();
+        mainCamera = Camera.main;
 
-        if (cameraTransform == null && Camera.main != null)
+        LockCursor();
+
+        if (pauseMenuPanel != null)
         {
-            cameraTransform = Camera.main.transform;
+            pauseMenuPanel.SetActive(false);
         }
 
-        rb.freezeRotation = true;
+        FindClosestBoss();
     }
 
     void Update()
     {
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
-        moveInput = new Vector3(h, 0, v).normalized;
+        if (!isPaused && Input.GetMouseButtonDown(0))
+        {
+            if (Cursor.lockState != CursorLockMode.Locked)
+            {
+                LockCursor();
+            }
+        }
 
-        // Orientación obligatoria al objetivo fijado (Lock-On)
-        OrientToLockTarget();
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            TogglePause();
+        }
 
-        // Dodge / Esquive
-        if (Input.GetKeyDown(KeyCode.Space) && !isDodging)
+        if (isPaused || isDodging) return;
+
+        CheckLockOnDistance();
+        HandleMovement();
+        HandleShooting();
+        HandleDodge();
+    }
+
+    private void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    public void TogglePause()
+    {
+        isPaused = !isPaused;
+
+        if (isPaused)
+        {
+            Time.timeScale = 0f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            if (pauseMenuPanel != null) pauseMenuPanel.SetActive(true);
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
+        }
+    }
+
+    void FindClosestBoss()
+    {
+        if (targetEnemy == null)
+        {
+            GameObject boss = GameObject.FindWithTag("Boss");
+            if (boss != null) targetEnemy = boss.transform;
+        }
+    }
+
+    void CheckLockOnDistance()
+    {
+        if (targetEnemy == null)
+        {
+            FindClosestBoss();
+        }
+
+        if (isLockedOn && targetEnemy != null)
+        {
+            float distance = Vector3.Distance(transform.position, targetEnemy.position);
+            if (distance > lockOnRange)
+            {
+                isLockedOn = false;
+            }
+        }
+    }
+
+    void HandleMovement()
+    {
+        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveZ = Input.GetAxisRaw("Vertical");
+        Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
+
+        Vector3 camForward = mainCamera != null ? mainCamera.transform.forward : Vector3.forward;
+        Vector3 camRight = mainCamera != null ? mainCamera.transform.right : Vector3.right;
+        camForward.y = 0f;
+        camRight.y = 0f;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        Vector3 moveDir = camForward * moveZ + camRight * moveX;
+
+        if (isLockedOn && targetEnemy != null)
+        {
+            Vector3 targetDir = (targetEnemy.position - transform.position).normalized;
+            targetDir.y = 0f;
+            if (targetDir != Vector3.zero)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(targetDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+            }
+        }
+        else if (inputDir.magnitude >= 0.1f)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(moveDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+        }
+
+        if (moveDir.magnitude >= 0.1f)
+        {
+            if (controller != null)
+            {
+                controller.Move(moveDir.normalized * moveSpeed * Time.deltaTime);
+            }
+            else if (rb != null)
+            {
+                rb.MovePosition(transform.position + moveDir.normalized * moveSpeed * Time.deltaTime);
+            }
+            else
+            {
+                transform.Translate(moveDir.normalized * moveSpeed * Time.deltaTime, Space.World);
+            }
+        }
+    }
+
+    void HandleShooting()
+    {
+        if (Input.GetButtonDown("Fire1") || Input.GetMouseButtonDown(0))
+        {
+            if (Time.time >= lastShootTime + shootCooldown)
+            {
+                ShootRock();
+                lastShootTime = Time.time;
+            }
+        }
+    }
+
+    void ShootRock()
+    {
+        if (rockPrefab == null) return;
+
+        Transform target = targetEnemy;
+        if (target == null)
+        {
+            GameObject bossObj = GameObject.FindWithTag("Boss");
+            if (bossObj != null) target = bossObj.transform;
+        }
+
+        if (target != null)
+        {
+            Vector3 lookDir = (target.position - transform.position).normalized;
+            lookDir.y = 0f;
+            if (lookDir != Vector3.zero)
+            {
+                transform.rotation = Quaternion.LookRotation(lookDir);
+            }
+        }
+
+        Vector3 safeSpawnPos = transform.position + transform.forward * 1.2f + Vector3.up * 1.2f;
+
+        Vector3 shootDirection;
+        if (target != null)
+        {
+            Vector3 targetCenter = target.position + Vector3.up * 1.0f;
+            shootDirection = (targetCenter - safeSpawnPos).normalized;
+        }
+        else
+        {
+            shootDirection = transform.forward;
+        }
+
+        Quaternion spawnRot = Quaternion.LookRotation(shootDirection);
+        GameObject projectile = Instantiate(rockPrefab, safeSpawnPos, spawnRot);
+        Rigidbody rockRb = projectile.GetComponent<Rigidbody>();
+
+        if (rockRb != null)
+        {
+            rockRb.linearVelocity = Vector3.zero;
+            rockRb.AddForce(shootDirection * rockForce, ForceMode.Impulse);
+        }
+    }
+
+    void HandleDodge()
+    {
+        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.LeftShift)) && canDodge)
         {
             if (playerStats != null && playerStats.UseStamina(dodgeStaminaCost))
             {
-                StartCoroutine(PerformDodge());
-            }
-        }
+                float moveX = Input.GetAxisRaw("Horizontal");
+                float moveZ = Input.GetAxisRaw("Vertical");
 
-        // Disparo de rocas
-        if (Input.GetMouseButtonDown(0) && !isDodging)
-        {
-            ThrowRock();
-        }
-
-        // Interacción
-        if (Input.GetKeyDown(KeyCode.E) && !isDodging)
-        {
-            TryInteract();
-        }
-    }
-
-    void FixedUpdate()
-    {
-        if (isDodging)
-        {
-            rb.linearVelocity = currentDodgeDir * dodgeSpeed + new Vector3(0, rb.linearVelocity.y, 0);
-            return;
-        }
-
-        if (moveInput.magnitude < 0.1f)
-        {
-            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
-            OrientToLockTarget();
-            return;
-        }
-
-        if (targetLock != null && targetLock.IsLockedOn && targetLock.currentTarget != null)
-        {
-            // --- MOVIMIENTO MODO COMBATE (STRAFE) ---
-            Vector3 moveDir = cameraTransform.right * moveInput.x + cameraTransform.forward * moveInput.z;
-            moveDir.y = 0;
-            moveDir.Normalize();
-
-            float speed = moveSpeed * strafeSpeedMultiplier;
-            rb.linearVelocity = moveDir * speed + new Vector3(0, rb.linearVelocity.y, 0);
-
-            OrientToLockTarget();
-        }
-        else
-        {
-            // --- MOVIMIENTO MODO LIBRE ---
-            float targetAngle = Mathf.Atan2(moveInput.x, moveInput.z) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
-            Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
-
-            Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
-            rb.linearVelocity = moveDir * moveSpeed + new Vector3(0, rb.linearVelocity.y, 0);
-        }
-    }
-
-    private void OrientToLockTarget()
-    {
-        if (targetLock != null && targetLock.IsLockedOn && targetLock.currentTarget != null)
-        {
-            Vector3 dirToBoss = (targetLock.currentTarget.position - transform.position).normalized;
-            dirToBoss.y = 0;
-            if (dirToBoss != Vector3.zero)
-            {
-                transform.rotation = Quaternion.LookRotation(dirToBoss);
+                StartCoroutine(DodgeRoutine(moveX, moveZ));
             }
         }
     }
 
-    IEnumerator PerformDodge()
+    IEnumerator DodgeRoutine(float moveX, float moveZ)
     {
         isDodging = true;
+        canDodge = false;
+        isInvulnerable = true;
 
-        if (moveInput.magnitude >= 0.1f)
+        Vector3 camForward = mainCamera != null ? mainCamera.transform.forward : Vector3.forward;
+        Vector3 camRight = mainCamera != null ? mainCamera.transform.right : Vector3.right;
+        camForward.y = 0f;
+        camRight.y = 0f;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        Vector3 dodgeDirection;
+
+        if (Mathf.Abs(moveX) > 0.1f || Mathf.Abs(moveZ) > 0.1f)
         {
-            currentDodgeDir = cameraTransform.right * moveInput.x + cameraTransform.forward * moveInput.z;
-            currentDodgeDir.y = 0;
-            currentDodgeDir.Normalize();
+            dodgeDirection = (camForward * moveZ + camRight * moveX).normalized;
         }
         else
         {
-            currentDodgeDir = transform.forward;
+            dodgeDirection = transform.forward;
         }
 
-        yield return new WaitForSeconds(dodgeDuration);
-
-        isDodging = false;
-    }
-
-    void ThrowRock()
-    {
-        if (rockPrefab == null || throwPoint == null) return;
-        GameObject rock = Instantiate(rockPrefab, throwPoint.position, throwPoint.rotation);
-        Rigidbody rockRb = rock.GetComponent<Rigidbody>();
-        if (rockRb != null)
+        float timer = 0f;
+        while (timer < dodgeDuration)
         {
-            Vector3 throwDir = transform.forward + Vector3.up * 0.15f;
-            rockRb.AddForce(throwDir.normalized * throwForce, ForceMode.Impulse);
-        }
-    }
-
-    void TryInteract()
-    {
-        if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 2.5f))
-        {
-            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-            if (interactable != null)
+            if (controller != null)
             {
-                interactable.Interact();
+                controller.Move(dodgeDirection * dodgeSpeed * Time.deltaTime);
             }
+            else if (rb != null)
+            {
+                rb.MovePosition(transform.position + dodgeDirection * dodgeSpeed * Time.deltaTime);
+            }
+            else
+            {
+                transform.Translate(dodgeDirection * dodgeSpeed * Time.deltaTime, Space.World);
+            }
+
+            timer += Time.deltaTime;
+            yield return null;
         }
+
+        isInvulnerable = false;
+        isDodging = false;
+
+        yield return new WaitForSeconds(dodgeCooldown);
+        canDodge = true;
     }
 }
