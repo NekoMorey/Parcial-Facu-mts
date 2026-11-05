@@ -32,18 +32,14 @@ public class BossStats : MonoBehaviour
     private void Die()
     {
         isDead = true;
-        Debug.Log($"{bossName} ha sido derrotado!");
+        Debug.Log($"{bossName} ha sido derrotado!" );
+        GameFeedback.Play(GameFeedback.Cue.BossDown);
+        GameFeedback.Burst(transform.position + Vector3.up, new Color(0.72f, 0.12f, 0.12f), 55, 0.32f);
 
-        Chest chest = FindFirstObjectByType<Chest>(FindObjectsInactive.Include);
-        if (chest != null)
+        ChestBase[] chests = FindObjectsByType<ChestBase>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (ChestBase chest in chests)
         {
             chest.isBossDefeated = true;
-        }
-
-        RewardChest rChest = FindFirstObjectByType<RewardChest>(FindObjectsInactive.Include);
-        if (rChest != null)
-        {
-            rChest.isBossDefeated = true;
         }
 
         gameObject.SetActive(false);

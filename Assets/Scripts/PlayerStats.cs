@@ -11,17 +11,20 @@ public class PlayerStats : MonoBehaviour
     public float maxStamina = 100f;
     public float currentStamina;
 
-    [Header("Estadísticas de Ataque y Nivel")]
+    [Header("Estadï¿½sticas de Ataque y Nivel")]
     public int playerLevel = 1;
     public float baseStrength = 10f;
 
     [Header("UI Game Over")]
     public GameObject gameOverPanel;
 
+    private Vector3 checkpointPosition;
+
     void Start()
     {
         currentHP = maxHP;
         currentStamina = maxStamina;
+        checkpointPosition = transform.position;
 
         if (gameOverPanel != null)
         {
@@ -38,6 +41,7 @@ public class PlayerStats : MonoBehaviour
         }
 
         currentHP -= damage;
+        GameFeedback.Play(GameFeedback.Cue.Hit);
         currentHP = Mathf.Clamp(currentHP, 0f, maxHP);
 
         if (currentHP <= 0f)
@@ -46,6 +50,19 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
+    public void SetCheckpoint(Vector3 position)
+    {
+        checkpointPosition = position;
+    }
+
+    public void RespawnAtCheckpoint()
+    {
+        PlayerController controller = GetComponent<PlayerController>();
+        if (controller != null) controller.ResetMotionState(checkpointPosition);
+        else transform.position = checkpointPosition;
+        currentHP = Mathf.Max(currentHP, maxHP * 0.35f);
+        currentStamina = maxStamina;
+    }
     public bool UseStamina(float amount)
     {
         if (currentStamina >= amount)
@@ -66,6 +83,7 @@ public class PlayerStats : MonoBehaviour
 
     private void Die()
     {
+        GameFeedback.Burst(transform.position + Vector3.up, new Color(0.7f, 0.12f, 0.1f), 42, 0.28f);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 

@@ -17,6 +17,8 @@ public class Rock : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        GameFeedback.Play(GameFeedback.Cue.Impact);
+        GameFeedback.Burst(collision.GetContact(0).point, new Color(0.78f, 0.55f, 0.28f), 10, 0.12f);
         if (collision.gameObject.CompareTag("Destructible"))
         {
             Destroy(collision.gameObject);

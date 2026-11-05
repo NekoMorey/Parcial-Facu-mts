@@ -98,6 +98,7 @@ public class BossAI : MonoBehaviour
         attackCooldown = timeBetweenAttacks;
 
         if (animator != null) animator.SetTrigger("Attack");
+        // Damage feedback is played only if ApplyMeleeDamage actually connects.
 
         Invoke(nameof(ApplyMeleeDamage), 0.3f);
     }
@@ -119,6 +120,8 @@ public class BossAI : MonoBehaviour
     {
         isAttacking = true;
         attackCooldown = timeBetweenAttacks + 1.2f;
+        if (animator != null) animator.SetTrigger("Charge");
+        GameFeedback.Play(GameFeedback.Cue.Charge);
 
         agent.isStopped = true;
         Vector3 targetDirection = (player.position - transform.position).normalized;
@@ -162,20 +165,4 @@ public class BossAI : MonoBehaviour
         isAttacking = false;
     }
 
-    void Die()
-    {
-        Chest chest = FindFirstObjectByType<Chest>(FindObjectsInactive.Include);
-        if (chest != null)
-        {
-            chest.isBossDefeated = true;
-        }
-
-        RewardChest rChest = FindFirstObjectByType<RewardChest>(FindObjectsInactive.Include);
-        if (rChest != null)
-        {
-            rChest.isBossDefeated = true;
-        }
-
-        Destroy(gameObject);
-    }
 }

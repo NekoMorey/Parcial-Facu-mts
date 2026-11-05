@@ -159,6 +159,25 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void ResetMotionState(Vector3 position)
+    {
+        StopAllCoroutines();
+        if (controller != null && controller.enabled)
+        {
+            controller.enabled = false;
+            transform.position = position;
+            controller.enabled = true;
+        }
+        else
+        {
+            transform.position = position;
+        }
+        if (rb != null) rb.linearVelocity = Vector3.zero;
+        verticalVelocity = 0f;
+        isDodging = false;
+        canDodge = true;
+        isInvulnerable = false;
+    }
     void HandleGravityAndJump()
     {
         if (controller != null && controller.enabled)
@@ -294,6 +313,7 @@ public class PlayerController : MonoBehaviour
 
         Quaternion spawnRot = Quaternion.LookRotation(shootDirection);
         GameObject projectile = Instantiate(rockPrefab, safeSpawnPos, spawnRot);
+        GameFeedback.Play(GameFeedback.Cue.Shoot);
         Rigidbody rockRb = projectile.GetComponent<Rigidbody>();
 
         if (rockRb != null)
@@ -325,6 +345,8 @@ public class PlayerController : MonoBehaviour
         isDodging = true;
         canDodge = false;
         isInvulnerable = true;
+        GameFeedback.Play(GameFeedback.Cue.Dodge);
+        GameFeedback.Burst(transform.position, new Color(0.45f, 0.78f, 1f), 12, 0.13f);
 
         if (mainCamera == null)
             mainCamera = Camera.main;
