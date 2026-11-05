@@ -4775,7 +4775,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAI
   player: {fileID: 0}
-  detectionRange: 12
+  detectionRange: 20
   attackRange: 2.5
   chargeRange: 8
   timeBetweenAttacks: 2

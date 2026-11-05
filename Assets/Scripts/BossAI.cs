@@ -9,19 +9,21 @@ public class BossAI : MonoBehaviour
     private NavMeshAgent agent;
     private Animator animator;
 
-    [Header("Rangos y Detección")]
-    public float detectionRange = 15.0f;
+    [Header("Rangos y Deteccion")]
+    public float detectionRange = 20.0f;
     public float attackRange = 2.5f;
     public float chargeRange = 6.0f;
     public float timeBetweenAttacks = 0.8f;
     private float attackCooldown = 0f;
 
-    [Header("Estadísticas de Ataque")]
+    [Header("Estadisticas de Ataque")]
     public float meleeDamage = 15f;
     public float chargeDamage = 25f;
     public float chargeSpeed = 16f;
     private float originalSpeed;
     private bool isAttacking = false;
+
+    public bool isPlayerDetected = false;
 
     void Start()
     {
@@ -35,6 +37,8 @@ public class BossAI : MonoBehaviour
             GameObject p = GameObject.FindWithTag("Player");
             if (p != null) player = p.transform;
         }
+
+        isPlayerDetected = false;
     }
 
     void Update()
@@ -44,7 +48,12 @@ public class BossAI : MonoBehaviour
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         attackCooldown -= Time.deltaTime;
 
-        if (distanceToPlayer > detectionRange)
+        if (distanceToPlayer <= detectionRange)
+        {
+            isPlayerDetected = true;
+        }
+
+        if (!isPlayerDetected)
         {
             agent.isStopped = true;
             return;
@@ -155,7 +164,7 @@ public class BossAI : MonoBehaviour
 
     void Die()
     {
-        RewardChest chest = FindFirstObjectByType<RewardChest>();
+        RewardChest chest = FindFirstObjectByType<RewardChest>(FindObjectsInactive.Include);
         if (chest != null)
         {
             chest.isBossDefeated = true;

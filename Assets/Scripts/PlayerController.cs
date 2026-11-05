@@ -57,8 +57,6 @@ public class PlayerController : MonoBehaviour
         {
             pauseMenuPanel.SetActive(false);
         }
-
-        FindClosestBoss();
     }
 
     void Update()
@@ -110,15 +108,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void FindClosestBoss()
-    {
-        if (targetEnemy == null)
-        {
-            GameObject boss = GameObject.FindWithTag("Boss");
-            if (boss != null) targetEnemy = boss.transform;
-        }
-    }
-
     void CheckLockOnDistance()
     {
         if (targetLock != null)
@@ -128,18 +117,19 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (targetEnemy == null)
-        {
-            FindClosestBoss();
-        }
-
         if (isLockedOn && targetEnemy != null)
         {
             float distance = Vector3.Distance(transform.position, targetEnemy.position);
             if (distance > lockOnRange)
             {
                 isLockedOn = false;
+                targetEnemy = null;
             }
+        }
+        else
+        {
+            isLockedOn = false;
+            targetEnemy = null;
         }
     }
 
@@ -212,12 +202,7 @@ public class PlayerController : MonoBehaviour
     {
         if (rockPrefab == null) return;
 
-        Transform target = targetEnemy;
-        if (target == null)
-        {
-            GameObject bossObj = GameObject.FindWithTag("Boss");
-            if (bossObj != null) target = bossObj.transform;
-        }
+        Transform target = (isLockedOn && targetEnemy != null) ? targetEnemy : null;
 
         if (target != null)
         {
