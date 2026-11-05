@@ -1,32 +1,43 @@
-# Proyecto Parcial: Prototipo de Combate 3D y Boss Fight
+# Ecos del Umbral: Vertical Slice de Combate 3D
 
-Este proyecto es un prototipo jugable desarrollado en **Unity 6** para una entrega universitaria de desarrollo de videojuegos. Implementa mecánicas clave de combate de acción en tercera persona estilo *Souls-like*, centrado en una arena de batalla contra un jefe (*Boss Fight*) con inteligencia artificial, gestión de estadísticas, sistema de fijado de objetivo (*Lock-On*), esquive con invulnerabilidad y recompensas de progresión.
+Experiencia vertical slice en **Unity 6**: el jugador cruza un recinto antiguo, supera una ruta de plataformas y enfrenta al Guardián del Umbral en una arena. El combate en tercera persona combina fijado de objetivo, proyectiles físicos, esquive con invulnerabilidad, gestión de salud/estamina y una recompensa final.
 
 ---
 
 ## 📋 Índice
 1. [Descripción General](#-descripción-general)
-2. [Requisitos y Tecnologías](#-requisitos-y-tecnologías)
-3. [Guía de Controles](#-guía-de-controles)
-4. [Mecánicas Implementadas](#-mecánicas-implementadas)
-5. [Arquitectura de Scripts](#-arquitectura-de-scripts)
-6. [Estructura del Proyecto](#-estructura-del-proyecto)
-7. [Instrucciones de Instalación y Ejecución](#-instrucciones-de-instalación-y-ejecución)
-8. [Autores y Datos Académicos](#-autores-y-datos-académicos)
+2. [High Concept actualizado](#-high-concept-actualizado)
+3. [Requisitos y Tecnologías](#-requisitos-y-tecnologías)
+4. [Guía de Controles](#-guía-de-controles)
+5. [Mecánicas Implementadas](#-mecánicas-implementadas)
+6. [Arquitectura de Scripts](#-arquitectura-de-scripts)
+7. [Estructura del Proyecto](#-estructura-del-proyecto)
+8. [Instrucciones de Instalación y Ejecución](#-instrucciones-de-instalación-y-ejecución)
+9. [Créditos](#créditos)
 
 ---
 
 ## 🎮 Descripción General
 
-El objetivo del proyecto es demostrar la integración de múltiples sistemas esenciales en Unity dentro de un bucle de juego (*game loop*) completo:
+La experiencia integra sistemas de movimiento, cámara, combate, progresión y presentación en un bucle de juego completo:
 * **Entrada y Movimiento:** Control en tercera persona relativo a la cámara con capacidad de desplazarse en círculos (*strafing*) al fijar objetivo.
 * **Cámara Inteligente:** Sistema de seguimiento y enfoque con Cinemachine.
 * **Combate Dinámico:** Lanzamiento de proyectiles físicos con fuerza de impulso y daño que escala según los atributos del jugador.
 * **Inteligencia Artificial:** Comportamiento del jefe gobernado por `NavMeshAgent` con patrones de ataque cuerpo a cuerpo y embestidas telegrafiadas.
 * **Interfaz de Usuario (HUD):** Monitoreo en tiempo real de salud y estamina del jugador, barra de vida del boss, y menús de Pausa y Fin de Partida.
-* **Interacción y Progresión:** Cofre interactivo que premia la victoria otorgando aumentos permanentes de estadísticas y escala visual.
+* **Interacción y Progresión:** Cofre final con mejoras permanentes, feedback audiovisual y pantalla de victoria.
+* **Recorrido:** Ruta de lobby, plataformas y arena con checkpoint al final del parkour y recuperación al caer.
+* **Integración audiovisual:** Música ambiental y efectos sonoros sintetizados en ejecución, partículas de impacto y recompensa, animaciones de reposo/ataque/carga del boss y luces de acento en el recorrido.
 
 ---
+
+## 💡 High Concept actualizado
+
+**Título provisional:** Ecos del Umbral. **Género:** acción y aventura 3D en tercera persona.
+
+El jugador atraviesa un recinto antiguo, supera una ruta vertical de plataformas y derrota al Guardián del Umbral en su arena. El combate combina movimiento libre, fijado de objetivo, proyectiles físicos y esquives que consumen estamina. Al vencer, el jugador abre el cofre final, recibe una mejora permanente y alcanza la pantalla de victoria.
+
+**Bucle principal:** explorar la ruta → administrar salud y estamina → leer y evitar los ataques del guardián → contraatacar → reclamar la recompensa. La cámara orbital y el HUD contextual apoyan la lectura del combate.
 
 ## 🛠 Requisitos y Tecnologías
 
@@ -47,7 +58,8 @@ El objetivo del proyecto es demostrar la integración de múltiples sistemas ese
 | **Moverse** | `W` `A` `S` `D` | Movimiento relativo a la vista de la cámara. |
 | **Rotar Cámara** | `Mouse` | Control orbital libre de la perspectiva de juego. |
 | **Fijar / Lock-On** | `R` | Fija la cámara en el Boss más cercano dentro del rango. |
-| **Esquivar (Roll)** | `Espacio` o `Shift Izq` | Realiza una maniobra evasiva con invulnerabilidad temporal (*i-frames*). |
+| **Saltar** | `Espacio` | Salto vertical cuando el personaje está en el suelo. |
+| **Esquivar (Roll)** | `Shift Izq` | Realiza una maniobra evasiva con invulnerabilidad temporal (*i-frames*). |
 | **Disparar Roca** | `Clic Izquierdo` | Lanza un proyectil balístico hacia la dirección de mira o el objetivo fijado. |
 | **Interactuar** | `E` | Abre cofres y activa objetos interactuables al estar cerca. |
 | **Pausar / Reanudar** | `Escape (ESC)` | Detiene el tiempo del juego y despliega el menú de opciones. |
@@ -67,14 +79,14 @@ El objetivo del proyecto es demostrar la integración de múltiples sistemas ese
 ### 3. Combate por Proyectiles Físicos (`Rock.cs`)
 * Los proyectiles son instanciados con componentes `Rigidbody` y disparados mediante un impulso de física vectorial.
 * El daño del proyectil se escala dinámicamente consultando la estadística `baseStrength` de `PlayerStats`.
-* Detección de colisiones contra enemigos (`BossStats`) y elementos del escenario con etiquetas `Destructible` o nombres identificados como `Pared`.
+* Detección de colisiones contra el boss (`BossStats`) y objetos con la etiqueta `Destructible`.
 
 ### 4. Inteligencia Artificial del Jefe (`BossAI.cs`)
 * Controlado por un `NavMeshAgent` que busca activamente la posición del jugador.
 * **Rango de Ataque Melee:** Al estar a corta distancia, frena su desplazamiento, encara al jugador y ejecuta un ataque básico con enfriamiento (*cooldown*).
 * **Ataque de Carga / Embestida:** Al encontrarse a media o larga distancia, inicia una corrutina de embestida acelerada con daño mayor si logra impactar al jugador.
 
-### 5. Progresión y Recompensas (`RewardChest.cs`)
+### 5. Progresión y Recompensas (`ChestBase.cs`)
 * El cofre final valida si el jefe ha sido derrotado.
 * Al ser abierto por el jugador (tecla `E`):
   * Incrementa el nivel del personaje.
@@ -94,15 +106,18 @@ Todos los scripts se ubican en `Assets/Scripts/`:
 
 ```
 Assets/Scripts/
-├── PlayerController.cs   # Control de movimiento, esquive, instanciación de proyectiles y pausa.
+├── PlayerController.cs   # Movimiento, salto, esquive, disparo y pausa.
+├── GameFeedback.cs       # Música/ambiente y feedback de sonidos y partículas en ejecución.
+├── GameplayTrigger.cs    # Checkpoint, recuperación al caer y eventos de ruta.
 ├── PlayerStats.cs        # Gestión de vida, estamina, niveles, daño recibido y Game Over.
 ├── TargetLock.cs         # Lógica de detección y fijación de objetivo para Cinemachine.
 ├── BossAI.cs             # Comportamiento del Boss con NavMesh (ataque melee y carga rápida).
 ├── BossStats.cs          # Puntos de salud, recepción de daño y lógica de derrota del Boss.
 ├── Rock.cs               # Comportamiento físico del proyectil y resolución de colisiones.
-├── HUDManager.cs         # Actualización visual de barras de vida y estamina en el Canvas.
-├── Chest.cs              # Cofre base con implementación de interfaz interactuable.
-├── RewardChest.cs        # Cofre especial de victoria con bonificaciones y VFX de nivel.
+├── HUDManager.cs         # HUD, aviso de interacción y cierre de victoria.
+├── ChestBase.cs          # Interacción y recompensa compartidas por los cofres.
+├── Chest.cs              # Componente de cofre usado por la escena.
+├── RewardChest.cs        # Variante compatible con la misma lógica.
 └── IInteractable.cs      # Contrato/Interfaz estándar para elementos interactuables (Interact()).
 ```
 
@@ -113,6 +128,9 @@ Assets/Scripts/
 ```
 Parcial-Facu-mts/
 ├── Assets/
+│   ├── Animations/       # Controlador y clips de animación del boss.
+│   ├── Materials/        # Materiales del recorrido y la arena.
+│   ├── Textures/         # Textura procedural de piedra basáltica.
 │   ├── Prefabs/          # Prefabs del juego (proyectil Rock, etc.)
 │   ├── Scenes/           # Escena principal de juego (scene.unity)
 │   ├── Scripts/          # Código fuente en C#
@@ -142,9 +160,6 @@ Parcial-Facu-mts/
 
 ---
 
-## 👥 Autores y Datos Académicos
+## Créditos
 
-* **Estudiante / Desarrollador:** Facundo Morey ([@NekoMorey](https://github.com/NekoMorey))
-* **Materia / Asignatura:** Desarrollo de Videojuegos / Motores Gráficos
-* **Institución:** Facultad / Universidad
-* **Año / Ciclo Lectivo:** 2026
+- Desarrollador: Facundo Morey ([@NekoMorey](https://github.com/NekoMorey)).
