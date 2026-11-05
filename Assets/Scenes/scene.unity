@@ -336,7 +336,7 @@ GameObject:
   - component: {fileID: 288013627}
   m_Layer: 0
   m_Name: Pared (1)
-  m_TagString: Untagged
+  m_TagString: Pared
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
@@ -1993,7 +1993,7 @@ GameObject:
   - component: {fileID: 800183035}
   m_Layer: 0
   m_Name: Pared
-  m_TagString: Untagged
+  m_TagString: Pared
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
@@ -2980,7 +2980,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 15
   rotationSpeed: 12
-  targetEnemy: {fileID: 2082327548}
+  targetEnemy: {fileID: 0}
   isLockedOn: 0
   lockOnRange: 40
   rockPrefab: {fileID: 3217686148763956118, guid: c136192111db1194a8f08a6430c8712b, type: 3}
@@ -3133,6 +3133,7 @@ MonoBehaviour:
   currentHP: 0
   maxStamina: 100
   currentStamina: 0
+  staminaRegenRate: 25
   playerLevel: 1
   baseStrength: 10
   gameOverPanel: {fileID: 1437704358}

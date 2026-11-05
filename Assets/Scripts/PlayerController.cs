@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Rigidbody rb;
     private PlayerStats playerStats;
+    private TargetLock targetLock;
     private Camera mainCamera;
 
     [Header("Movimiento")]
@@ -42,8 +43,13 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         rb = GetComponent<Rigidbody>();
-        playerStats = GetComponent<PlayerStats>();
+        playerStats = GetComponent<PlayerStats>() ?? FindFirstObjectByType<PlayerStats>();
+        targetLock = GetComponent<TargetLock>() ?? FindFirstObjectByType<TargetLock>();
         mainCamera = Camera.main;
+
+        canDodge = true;
+        isDodging = false;
+        isInvulnerable = false;
 
         LockCursor();
 
@@ -115,6 +121,13 @@ public class PlayerController : MonoBehaviour
 
     void CheckLockOnDistance()
     {
+        if (targetLock != null)
+        {
+            isLockedOn = targetLock.IsLockedOn;
+            targetEnemy = targetLock.currentTarget;
+            return;
+        }
+
         if (targetEnemy == null)
         {
             FindClosestBoss();
@@ -135,6 +148,11 @@ public class PlayerController : MonoBehaviour
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveZ = Input.GetAxisRaw("Vertical");
         Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
+
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
 
         Vector3 camForward = mainCamera != null ? mainCamera.transform.forward : Vector3.forward;
         Vector3 camRight = mainCamera != null ? mainCamera.transform.right : Vector3.right;
@@ -163,7 +181,7 @@ public class PlayerController : MonoBehaviour
 
         if (moveDir.magnitude >= 0.1f)
         {
-            if (controller != null)
+            if (controller != null && controller.enabled)
             {
                 controller.Move(moveDir.normalized * moveSpeed * Time.deltaTime);
             }
@@ -211,7 +229,9 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        Vector3 safeSpawnPos = transform.position + transform.forward * 1.2f + Vector3.up * 1.2f;
+        Vector3 safeSpawnPos = spawnPoint != null 
+            ? spawnPoint.position 
+            : transform.position + transform.forward * 1.2f + Vector3.up * 1.2f;
 
         Vector3 shootDirection;
         if (target != null)
@@ -233,13 +253,19 @@ public class PlayerController : MonoBehaviour
             rockRb.linearVelocity = Vector3.zero;
             rockRb.AddForce(shootDirection * rockForce, ForceMode.Impulse);
         }
+
+        Rock rockComp = projectile.GetComponent<Rock>();
+        if (rockComp != null)
+        {
+            rockComp.Initialize(playerStats != null ? playerStats.baseStrength : 10f);
+        }
     }
 
     void HandleDodge()
     {
         if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.LeftShift)) && canDodge)
         {
-            if (playerStats != null && playerStats.UseStamina(dodgeStaminaCost))
+            if (playerStats == null || playerStats.UseStamina(dodgeStaminaCost))
             {
                 float moveX = Input.GetAxisRaw("Horizontal");
                 float moveZ = Input.GetAxisRaw("Vertical");
@@ -255,8 +281,13 @@ public class PlayerController : MonoBehaviour
         canDodge = false;
         isInvulnerable = true;
 
-        Vector3 camForward = mainCamera != null ? mainCamera.transform.forward : Vector3.forward;
-        Vector3 camRight = mainCamera != null ? mainCamera.transform.right : Vector3.right;
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
+        Vector3 camForward = mainCamera != null ? mainCamera.transform.forward : transform.forward;
+        Vector3 camRight = mainCamera != null ? mainCamera.transform.right : transform.right;
         camForward.y = 0f;
         camRight.y = 0f;
         camForward.Normalize();
@@ -273,20 +304,29 @@ public class PlayerController : MonoBehaviour
             dodgeDirection = transform.forward;
         }
 
+        if (dodgeDirection != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(dodgeDirection);
+        }
+
+        float actualDodgeSpeed = Mathf.Max(dodgeSpeed, moveSpeed * 1.5f);
         float timer = 0f;
+
         while (timer < dodgeDuration)
         {
-            if (controller != null)
+            Vector3 movement = dodgeDirection * actualDodgeSpeed * Time.deltaTime;
+
+            if (controller != null && controller.enabled)
             {
-                controller.Move(dodgeDirection * dodgeSpeed * Time.deltaTime);
+                controller.Move(movement);
             }
             else if (rb != null)
             {
-                rb.MovePosition(transform.position + dodgeDirection * dodgeSpeed * Time.deltaTime);
+                rb.MovePosition(transform.position + movement);
             }
             else
             {
-                transform.Translate(dodgeDirection * dodgeSpeed * Time.deltaTime, Space.World);
+                transform.Translate(movement, Space.World);
             }
 
             timer += Time.deltaTime;

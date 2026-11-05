@@ -10,8 +10,9 @@ public class PlayerStats : MonoBehaviour
     [Header("Stamina")]
     public float maxStamina = 100f;
     public float currentStamina;
+    public float staminaRegenRate = 25f;
 
-    [Header("Estadísticas de Ataque y Nivel")]
+    [Header("Estadisticas de Ataque y Nivel")]
     public int playerLevel = 1;
     public float baseStrength = 10f;
 
@@ -20,12 +21,24 @@ public class PlayerStats : MonoBehaviour
 
     void Start()
     {
+        if (maxHP <= 0f) maxHP = 100f;
+        if (maxStamina <= 0f) maxStamina = 100f;
+
         currentHP = maxHP;
         currentStamina = maxStamina;
 
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(false);
+        }
+    }
+
+    void Update()
+    {
+        if (currentHP > 0f && currentStamina < maxStamina)
+        {
+            currentStamina += staminaRegenRate * Time.deltaTime;
+            currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
         }
     }
 
@@ -62,6 +75,7 @@ public class PlayerStats : MonoBehaviour
         baseStrength += 15f;
         maxHP += 50f;
         currentHP = maxHP;
+        currentStamina = maxStamina;
     }
 
     private void Die()

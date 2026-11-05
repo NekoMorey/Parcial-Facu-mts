@@ -14,9 +14,21 @@ public class HUDManager : MonoBehaviour
     public Slider bossHealthSlider;
     public GameObject bossHUDPanel;
 
+    void Start()
+    {
+        if (playerStats == null)
+        {
+            playerStats = FindFirstObjectByType<PlayerStats>();
+        }
+
+        if (bossStats == null)
+        {
+            bossStats = FindFirstObjectByType<BossStats>();
+        }
+    }
+
     void Update()
     {
- 
         if (playerStats != null)
         {
             if (healthSlider != null)
@@ -32,10 +44,9 @@ public class HUDManager : MonoBehaviour
             }
         }
 
-
         if (bossStats != null && bossStats.gameObject.activeInHierarchy)
         {
-            if (bossHUDPanel != null) bossHUDPanel.SetActive(true);
+            if (bossHUDPanel != null && !bossHUDPanel.activeSelf) bossHUDPanel.SetActive(true);
             if (bossHealthSlider != null)
             {
                 bossHealthSlider.maxValue = bossStats.maxHP;
@@ -44,7 +55,7 @@ public class HUDManager : MonoBehaviour
         }
         else
         {
-            if (bossHUDPanel != null) bossHUDPanel.SetActive(false);
+            if (bossHUDPanel != null && bossHUDPanel.activeSelf) bossHUDPanel.SetActive(false);
         }
     }
 }
