@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Rigidbody rb;
     private PlayerStats playerStats;
+    private TargetLock targetLock;
     private Camera mainCamera;
 
     [Header("Movimiento")]
@@ -23,6 +24,12 @@ public class PlayerController : MonoBehaviour
     public float rockForce = 25f;
     public float shootCooldown = 0.5f;
     private float lastShootTime = 0f;
+
+    [Header("Salto")]
+    public float jumpForce = 7f;
+    public float gravity = -20f;
+    private float verticalVelocity = 0f;
+    private bool isGrounded = false;
 
     [Header("Esquive / Dodge")]
     public float dodgeSpeed = 16f;
@@ -42,17 +49,19 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         rb = GetComponent<Rigidbody>();
-        playerStats = GetComponent<PlayerStats>();
+        playerStats = GetComponent<PlayerStats>() ?? FindFirstObjectByType<PlayerStats>();
+        targetLock = GetComponent<TargetLock>() ?? FindFirstObjectByType<TargetLock>();
         mainCamera = Camera.main;
+
+        canDodge = true;
+        isDodging = false;
+        isInvulnerable = false;
+        verticalVelocity = 0f;
 
         LockCursor();
 
         if (pauseMenuPanel != null)
-        {
             pauseMenuPanel.SetActive(false);
-        }
-
-        FindClosestBoss();
     }
 
     void Update()
@@ -60,19 +69,16 @@ public class PlayerController : MonoBehaviour
         if (!isPaused && Input.GetMouseButtonDown(0))
         {
             if (Cursor.lockState != CursorLockMode.Locked)
-            {
                 LockCursor();
-            }
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))
-        {
             TogglePause();
-        }
 
         if (isPaused || isDodging) return;
 
         CheckLockOnDistance();
+        HandleGravityAndJump();
         HandleMovement();
         HandleShooting();
         HandleDodge();
@@ -104,20 +110,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void FindClosestBoss()
-    {
-        if (targetEnemy == null)
-        {
-            GameObject boss = GameObject.FindWithTag("Boss");
-            if (boss != null) targetEnemy = boss.transform;
-        }
-    }
-
     void CheckLockOnDistance()
     {
-        if (targetEnemy == null)
+        if (targetLock != null)
         {
-            FindClosestBoss();
+            isLockedOn = targetLock.IsLockedOn;
+            targetEnemy = targetLock.currentTarget;
+            return;
         }
 
         if (isLockedOn && targetEnemy != null)
@@ -126,7 +125,29 @@ public class PlayerController : MonoBehaviour
             if (distance > lockOnRange)
             {
                 isLockedOn = false;
+                targetEnemy = null;
             }
+        }
+        else
+        {
+            isLockedOn = false;
+            targetEnemy = null;
+        }
+    }
+
+    void HandleGravityAndJump()
+    {
+        if (controller != null)
+        {
+            isGrounded = controller.isGrounded;
+
+            if (isGrounded && verticalVelocity < 0f)
+                verticalVelocity = -2f;
+
+            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+                verticalVelocity = jumpForce;
+
+            verticalVelocity += gravity * Time.deltaTime;
         }
     }
 
@@ -135,6 +156,9 @@ public class PlayerController : MonoBehaviour
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveZ = Input.GetAxisRaw("Vertical");
         Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
+
+        if (mainCamera == null)
+            mainCamera = Camera.main;
 
         Vector3 camForward = mainCamera != null ? mainCamera.transform.forward : Vector3.forward;
         Vector3 camRight = mainCamera != null ? mainCamera.transform.right : Vector3.right;
@@ -161,20 +185,25 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
         }
 
-        if (moveDir.magnitude >= 0.1f)
+        Vector3 finalMotion = moveDir.normalized * moveSpeed;
+        finalMotion.y = verticalVelocity;
+
+        if (controller != null && controller.enabled)
         {
-            if (controller != null)
-            {
-                controller.Move(moveDir.normalized * moveSpeed * Time.deltaTime);
-            }
-            else if (rb != null)
-            {
-                rb.MovePosition(transform.position + moveDir.normalized * moveSpeed * Time.deltaTime);
-            }
+            if (moveDir.magnitude >= 0.1f)
+                controller.Move(finalMotion * Time.deltaTime);
             else
-            {
+                controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+        }
+        else if (rb != null)
+        {
+            if (moveDir.magnitude >= 0.1f)
+                rb.MovePosition(transform.position + moveDir.normalized * moveSpeed * Time.deltaTime);
+        }
+        else
+        {
+            if (moveDir.magnitude >= 0.1f)
                 transform.Translate(moveDir.normalized * moveSpeed * Time.deltaTime, Space.World);
-            }
         }
     }
 
@@ -194,24 +223,19 @@ public class PlayerController : MonoBehaviour
     {
         if (rockPrefab == null) return;
 
-        Transform target = targetEnemy;
-        if (target == null)
-        {
-            GameObject bossObj = GameObject.FindWithTag("Boss");
-            if (bossObj != null) target = bossObj.transform;
-        }
+        Transform target = (isLockedOn && targetEnemy != null) ? targetEnemy : null;
 
         if (target != null)
         {
             Vector3 lookDir = (target.position - transform.position).normalized;
             lookDir.y = 0f;
             if (lookDir != Vector3.zero)
-            {
                 transform.rotation = Quaternion.LookRotation(lookDir);
-            }
         }
 
-        Vector3 safeSpawnPos = transform.position + transform.forward * 1.2f + Vector3.up * 1.2f;
+        Vector3 safeSpawnPos = spawnPoint != null
+            ? spawnPoint.position
+            : transform.position + transform.forward * 1.2f + Vector3.up * 1.2f;
 
         Vector3 shootDirection;
         if (target != null)
@@ -233,17 +257,20 @@ public class PlayerController : MonoBehaviour
             rockRb.linearVelocity = Vector3.zero;
             rockRb.AddForce(shootDirection * rockForce, ForceMode.Impulse);
         }
+
+        Rock rockComp = projectile.GetComponent<Rock>();
+        if (rockComp != null)
+            rockComp.Initialize(playerStats != null ? playerStats.baseStrength : 10f);
     }
 
     void HandleDodge()
     {
-        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.LeftShift)) && canDodge)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && canDodge)
         {
-            if (playerStats != null && playerStats.UseStamina(dodgeStaminaCost))
+            if (playerStats == null || playerStats.UseStamina(dodgeStaminaCost))
             {
                 float moveX = Input.GetAxisRaw("Horizontal");
                 float moveZ = Input.GetAxisRaw("Vertical");
-
                 StartCoroutine(DodgeRoutine(moveX, moveZ));
             }
         }
@@ -255,8 +282,11 @@ public class PlayerController : MonoBehaviour
         canDodge = false;
         isInvulnerable = true;
 
-        Vector3 camForward = mainCamera != null ? mainCamera.transform.forward : Vector3.forward;
-        Vector3 camRight = mainCamera != null ? mainCamera.transform.right : Vector3.right;
+        if (mainCamera == null)
+            mainCamera = Camera.main;
+
+        Vector3 camForward = mainCamera != null ? mainCamera.transform.forward : transform.forward;
+        Vector3 camRight = mainCamera != null ? mainCamera.transform.right : transform.right;
         camForward.y = 0f;
         camRight.y = 0f;
         camForward.Normalize();
@@ -265,29 +295,27 @@ public class PlayerController : MonoBehaviour
         Vector3 dodgeDirection;
 
         if (Mathf.Abs(moveX) > 0.1f || Mathf.Abs(moveZ) > 0.1f)
-        {
             dodgeDirection = (camForward * moveZ + camRight * moveX).normalized;
-        }
         else
-        {
             dodgeDirection = transform.forward;
-        }
 
+        if (dodgeDirection != Vector3.zero)
+            transform.rotation = Quaternion.LookRotation(dodgeDirection);
+
+        float actualDodgeSpeed = Mathf.Max(dodgeSpeed, moveSpeed * 1.5f);
         float timer = 0f;
+
         while (timer < dodgeDuration)
         {
-            if (controller != null)
-            {
-                controller.Move(dodgeDirection * dodgeSpeed * Time.deltaTime);
-            }
+            Vector3 movement = dodgeDirection * actualDodgeSpeed * Time.deltaTime;
+            movement.y = verticalVelocity * Time.deltaTime;
+
+            if (controller != null && controller.enabled)
+                controller.Move(movement);
             else if (rb != null)
-            {
-                rb.MovePosition(transform.position + dodgeDirection * dodgeSpeed * Time.deltaTime);
-            }
+                rb.MovePosition(transform.position + movement);
             else
-            {
-                transform.Translate(dodgeDirection * dodgeSpeed * Time.deltaTime, Space.World);
-            }
+                transform.Translate(movement, Space.World);
 
             timer += Time.deltaTime;
             yield return null;
