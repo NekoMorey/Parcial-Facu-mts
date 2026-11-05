@@ -3,7 +3,7 @@ using UnityEngine;
 public class BossStats : MonoBehaviour
 {
     [Header("Stats del Boss")]
-    public string bossName = "Guardián del Umbral";
+    public string bossName = "Guardian del Umbral";
     public float maxHP = 500f;
     public float currentHP;
 
@@ -21,7 +21,7 @@ public class BossStats : MonoBehaviour
         currentHP -= amount;
         currentHP = Mathf.Clamp(currentHP, 0, maxHP);
 
-        Debug.Log($"{bossName} recibió {amount} de daño. HP restante: {currentHP}");
+        Debug.Log($"{bossName} recibio {amount} de dano. HP restante: {currentHP}");
 
         if (currentHP <= 0)
         {
@@ -32,12 +32,18 @@ public class BossStats : MonoBehaviour
     private void Die()
     {
         isDead = true;
-        Debug.Log($"¡{bossName} ha sido derrotado!");
+        Debug.Log($"{bossName} ha sido derrotado!");
 
-        PlayerStats player = FindFirstObjectByType<PlayerStats>();
-        if (player != null)
+        Chest chest = FindFirstObjectByType<Chest>(FindObjectsInactive.Include);
+        if (chest != null)
         {
-            player.RewardBossVictory();
+            chest.isBossDefeated = true;
+        }
+
+        RewardChest rChest = FindFirstObjectByType<RewardChest>(FindObjectsInactive.Include);
+        if (rChest != null)
+        {
+            rChest.isBossDefeated = true;
         }
 
         gameObject.SetActive(false);

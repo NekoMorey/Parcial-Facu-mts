@@ -10,7 +10,7 @@ public class PlayerController : MonoBehaviour
     private Camera mainCamera;
 
     [Header("Movimiento")]
-    public float moveSpeed = 6f;
+    public float moveSpeed = 15f;
     public float rotationSpeed = 12f;
 
     [Header("Target Lock / Fijar Enemigo")]
@@ -26,7 +26,7 @@ public class PlayerController : MonoBehaviour
     private float lastShootTime = 0f;
 
     [Header("Salto")]
-    public float jumpForce = 7f;
+    public float jumpForce = 8.5f;
     public float gravity = -20f;
     private float verticalVelocity = 0f;
     private bool isGrounded = false;
@@ -52,6 +52,30 @@ public class PlayerController : MonoBehaviour
         playerStats = GetComponent<PlayerStats>() ?? FindFirstObjectByType<PlayerStats>();
         targetLock = GetComponent<TargetLock>() ?? FindFirstObjectByType<TargetLock>();
         mainCamera = Camera.main;
+
+        if (controller == null)
+        {
+            controller = gameObject.AddComponent<CharacterController>();
+            controller.center = Vector3.zero;
+            controller.height = 2f;
+            controller.radius = 0.5f;
+            controller.skinWidth = 0.05f;
+            controller.minMoveDistance = 0f;
+            controller.stepOffset = 0.4f;
+        }
+
+        if (controller != null)
+        {
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+            }
+            CapsuleCollider col = GetComponent<CapsuleCollider>();
+            if (col != null)
+            {
+                col.enabled = false;
+            }
+        }
 
         canDodge = true;
         isDodging = false;
@@ -137,17 +161,33 @@ public class PlayerController : MonoBehaviour
 
     void HandleGravityAndJump()
     {
-        if (controller != null)
+        if (controller != null && controller.enabled)
         {
-            isGrounded = controller.isGrounded;
+            float checkDist = 1.15f;
+            isGrounded = controller.isGrounded || Physics.Raycast(transform.position, Vector3.down, checkDist);
 
             if (isGrounded && verticalVelocity < 0f)
+            {
                 verticalVelocity = -2f;
+            }
 
             if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+            {
                 verticalVelocity = jumpForce;
+                isGrounded = false;
+            }
 
             verticalVelocity += gravity * Time.deltaTime;
+            verticalVelocity = Mathf.Clamp(verticalVelocity, -25f, 25f);
+        }
+        else if (rb != null)
+        {
+            isGrounded = Physics.Raycast(transform.position, Vector3.down, 1.15f);
+
+            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+            {
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
+            }
         }
     }
 
@@ -185,20 +225,24 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
         }
 
-        Vector3 finalMotion = moveDir.normalized * moveSpeed;
-        finalMotion.y = verticalVelocity;
+        Vector3 horizontalMove = moveDir.normalized * moveSpeed;
+        Vector3 finalMotion = new Vector3(horizontalMove.x, verticalVelocity, horizontalMove.z);
 
         if (controller != null && controller.enabled)
         {
-            if (moveDir.magnitude >= 0.1f)
-                controller.Move(finalMotion * Time.deltaTime);
-            else
-                controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+            controller.Move(finalMotion * Time.deltaTime);
         }
         else if (rb != null)
         {
             if (moveDir.magnitude >= 0.1f)
-                rb.MovePosition(transform.position + moveDir.normalized * moveSpeed * Time.deltaTime);
+            {
+                Vector3 targetVel = moveDir.normalized * moveSpeed;
+                rb.linearVelocity = new Vector3(targetVel.x, rb.linearVelocity.y, targetVel.z);
+            }
+            else
+            {
+                rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            }
         }
         else
         {
@@ -311,11 +355,17 @@ public class PlayerController : MonoBehaviour
             movement.y = verticalVelocity * Time.deltaTime;
 
             if (controller != null && controller.enabled)
+            {
                 controller.Move(movement);
+            }
             else if (rb != null)
-                rb.MovePosition(transform.position + movement);
+            {
+                rb.linearVelocity = new Vector3(dodgeDirection.x * actualDodgeSpeed, rb.linearVelocity.y, dodgeDirection.z * actualDodgeSpeed);
+            }
             else
+            {
                 transform.Translate(movement, Space.World);
+            }
 
             timer += Time.deltaTime;
             yield return null;

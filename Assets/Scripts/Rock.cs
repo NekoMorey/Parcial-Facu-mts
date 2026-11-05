@@ -3,24 +3,23 @@ using UnityEngine;
 public class Rock : MonoBehaviour
 {
     public float lifeTime = 5f;
-    private float damage = 10f;
+    public float damage = 10f;
+
+    public void Initialize(float rockDamage)
+    {
+        damage = rockDamage;
+    }
 
     void Start()
     {
-        PlayerStats playerStats = FindFirstObjectByType<PlayerStats>();
-        if (playerStats != null)
-        {
-            damage = playerStats.baseStrength;
-        }
-
         Destroy(gameObject, lifeTime);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Destructible") || collision.gameObject.name.Contains("Pared"))
+        if (collision.gameObject.CompareTag("Destructible"))
         {
-            Destroy(collision.gameObject); // Destruye la pared al impactar
+            Destroy(collision.gameObject);
             Destroy(gameObject);
             return;
         }

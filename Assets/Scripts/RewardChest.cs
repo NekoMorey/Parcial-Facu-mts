@@ -1,27 +1,48 @@
 using UnityEngine;
 
-public class RewardChest : MonoBehaviour
+public class RewardChest : MonoBehaviour, IInteractable
 {
     public bool isBossDefeated = false;
     private bool isOpened = false;
+    public float interactionDistance = 4.5f;
 
     [Header("Efectos de Subida de Nivel")]
     public GameObject levelUpVFX;
     public float scaleMultiplier = 1.25f;
 
-    private void OnTriggerStay(Collider other)
+    void Update()
     {
-        if (!isBossDefeated || isOpened) return;
+        if (isOpened) return;
 
-        if (other.CompareTag("Player") && Input.GetKeyDown(KeyCode.E))
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
         {
-            OpenChest(other.gameObject);
+            float dist = Vector3.Distance(transform.position, player.transform.position);
+            if (dist <= interactionDistance && Input.GetKeyDown(KeyCode.E))
+            {
+                if (isBossDefeated)
+                {
+                    OpenChest(player);
+                }
+            }
+        }
+    }
+
+    public void Interact()
+    {
+        if (isOpened || !isBossDefeated) return;
+
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
+        {
+            OpenChest(player);
         }
     }
 
     void OpenChest(GameObject player)
     {
         isOpened = true;
+        transform.Rotate(0f, 45f, 0f);
 
         PlayerStats stats = player.GetComponent<PlayerStats>();
         if (stats != null)
@@ -36,6 +57,6 @@ public class RewardChest : MonoBehaviour
             Instantiate(levelUpVFX, player.transform.position, Quaternion.identity, player.transform);
         }
 
-        Debug.Log("¡Cofre abierto! Nivel del personaje aumentado.");
+        Debug.Log("Cofre abierto con exito! Nivel del personaje aumentado.");
     }
 }
