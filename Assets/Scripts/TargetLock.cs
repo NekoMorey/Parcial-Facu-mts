@@ -3,7 +3,7 @@ using Unity.Cinemachine;
 
 public class TargetLock : MonoBehaviour
 {
-    [Header("Configuración de Lock-On")]
+    [Header("Configuracion de Lock-On")]
     public KeyCode lockKey = KeyCode.R;
     public float targetNoticeDistance = 25f;
     public LayerMask targetLayers;
@@ -62,7 +62,15 @@ public class TargetLock : MonoBehaviour
         if (dirToTarget != Vector3.zero)
         {
             float targetAngle = Mathf.Atan2(dirToTarget.x, dirToTarget.z) * Mathf.Rad2Deg;
-            orbitalFollow.HorizontalAxis.Value = Mathf.LerpAngle(orbitalFollow.HorizontalAxis.Value, targetAngle, Time.deltaTime * 10f);
+            orbitalFollow.HorizontalAxis.Value = Mathf.LerpAngle(orbitalFollow.HorizontalAxis.Value, targetAngle, Time.deltaTime * 8f);
+        }
+
+        Vector3 fullDir = currentTarget.position - transform.position;
+        float distanceXZ = Mathf.Sqrt(fullDir.x * fullDir.x + fullDir.z * fullDir.z);
+        if (distanceXZ > 0.01f)
+        {
+            float pitch = Mathf.Clamp(-Mathf.Atan2(fullDir.y, distanceXZ) * Mathf.Rad2Deg + 14f, orbitalFollow.VerticalAxis.Range.x, orbitalFollow.VerticalAxis.Range.y);
+            orbitalFollow.VerticalAxis.Value = Mathf.LerpAngle(orbitalFollow.VerticalAxis.Value, pitch, Time.deltaTime * 5f);
         }
     }
 
