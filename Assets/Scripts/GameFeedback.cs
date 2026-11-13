@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 /// <summary>Procedural audio and particle feedback so the vertical slice has no missing scene references.</summary>
 public sealed class GameFeedback : MonoBehaviour
@@ -13,6 +14,10 @@ public sealed class GameFeedback : MonoBehaviour
     private AudioSource musicSource;
     private AudioSource ambienceSource;
     private AudioSource sfxSource;
+    private AudioLowPassFilter musicFilter;
+    private BossStats boss;
+    private float nextBossSearch;
+    private bool mixerRouted;
     private const int SampleRate = 22050;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -42,11 +47,15 @@ public sealed class GameFeedback : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-        musicSource = gameObject.AddComponent<AudioSource>();
+        GameObject musicObject = new GameObject("Music Source");
+        musicObject.transform.SetParent(transform, false);
+        musicSource = musicObject.AddComponent<AudioSource>();
         musicSource.loop = true;
         musicSource.spatialBlend = 0f;
         musicSource.volume = 0.22f;
         musicSource.clip = CreateMusic();
+        musicFilter = musicSource.gameObject.AddComponent<AudioLowPassFilter>();
+        musicFilter.cutoffFrequency = 22000f;
 
         ambienceSource = gameObject.AddComponent<AudioSource>();
         ambienceSource.loop = true;
@@ -60,6 +69,59 @@ public sealed class GameFeedback : MonoBehaviour
 
         musicSource.Play();
         ambienceSource.Play();
+    }
+
+    private void Update()
+    {
+        if (!mixerRouted)
+            mixerRouted = RouteAudioSources();
+
+        nextBossSearch -= Time.deltaTime;
+        if (boss == null && nextBossSearch <= 0f)
+        {
+            boss = FindFirstObjectByType<BossStats>();
+            nextBossSearch = 0.5f;
+        }
+
+        if (boss != null && !boss.isActiveAndEnabled)
+            boss = null;
+
+        float pitchTarget = 0.94f;
+        float cutoffTarget = 14000f;
+        if (boss != null)
+        {
+            float health = boss.maxHP > 0f ? boss.currentHP / boss.maxHP : 1f;
+            if (health > 0.35f)
+            {
+                pitchTarget = 1.04f;
+                cutoffTarget = 8500f;
+            }
+            else
+            {
+                pitchTarget = 0.88f;
+                cutoffTarget = 1800f;
+            }
+        }
+
+        float blend = 1f - Mathf.Exp(-3f * Time.deltaTime);
+        musicSource.pitch = Mathf.Lerp(musicSource.pitch, pitchTarget, blend);
+        musicFilter.cutoffFrequency = Mathf.Lerp(musicFilter.cutoffFrequency, cutoffTarget, blend);
+    }
+
+    private bool RouteAudioSources()
+    {
+        AudioMixer mixer = VoiceOver.Mixer;
+        if (mixer == null) return false;
+
+        AudioMixerGroup[] music = mixer.FindMatchingGroups("Musica");
+        AudioMixerGroup[] sfx = mixer.FindMatchingGroups("SFX");
+        AudioMixerGroup[] ambience = mixer.FindMatchingGroups("Ambiente");
+        if (music.Length == 0 || sfx.Length == 0 || ambience.Length == 0) return false;
+
+        musicSource.outputAudioMixerGroup = music[0];
+        sfxSource.outputAudioMixerGroup = sfx[0];
+        ambienceSource.outputAudioMixerGroup = ambience[0];
+        return true;
     }
 
     public static void Play(Cue cue)

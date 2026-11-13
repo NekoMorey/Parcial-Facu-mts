@@ -22,6 +22,7 @@ public class BossAI : MonoBehaviour
     public float chargeSpeed = 16f;
     private float originalSpeed;
     private bool isAttacking = false;
+    private bool dangerLinePlayed = false;
 
     public bool isPlayerDetected = false;
 
@@ -98,7 +99,6 @@ public class BossAI : MonoBehaviour
         attackCooldown = timeBetweenAttacks;
 
         if (animator != null) animator.SetTrigger("Attack");
-        // Damage feedback is played only if ApplyMeleeDamage actually connects.
 
         Invoke(nameof(ApplyMeleeDamage), 0.3f);
     }
@@ -122,6 +122,11 @@ public class BossAI : MonoBehaviour
         attackCooldown = timeBetweenAttacks + 1.2f;
         if (animator != null) animator.SetTrigger("Charge");
         GameFeedback.Play(GameFeedback.Cue.Charge);
+        if (!dangerLinePlayed)
+        {
+            VoiceOver.PlayDangerLine();
+            dangerLinePlayed = true;
+        }
 
         agent.isStopped = true;
         Vector3 targetDirection = (player.position - transform.position).normalized;

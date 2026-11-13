@@ -34,6 +34,7 @@ public class BossStats : MonoBehaviour
         isDead = true;
         Debug.Log($"{bossName} ha sido derrotado!" );
         GameFeedback.Play(GameFeedback.Cue.BossDown);
+        VoiceOver.PlayVictoryLine();
         GameFeedback.Burst(transform.position + Vector3.up, new Color(0.72f, 0.12f, 0.12f), 55, 0.32f);
 
         ChestBase[] chests = FindObjectsByType<ChestBase>(FindObjectsInactive.Include, FindObjectsSortMode.None);

@@ -20,6 +20,7 @@ public sealed class GameplayTrigger : MonoBehaviour
         {
             stats.SetCheckpoint(transform.position + Vector3.up * 1.5f);
             GameFeedback.Play(GameFeedback.Cue.Reward);
+            VoiceOver.PlayRouteLine();
             GameFeedback.Burst(transform.position + Vector3.up, new Color(0.25f, 0.85f, 0.82f), 28, 0.2f);
             Debug.Log("Checkpoint activado: final del parkour.");
         }
