@@ -48,6 +48,9 @@ public static class PostLook
             holder.AddComponent<PauseMenu>();
         }
 
+        var stats = Object.FindFirstObjectByType<PlayerStats>();
+        if (stats != null && stats.gameOverPanel != null) stats.gameOverPanel.SetActive(false);
+
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveOpenScenes();
         Debug.Log("Post-procesado y pausa listos.");
