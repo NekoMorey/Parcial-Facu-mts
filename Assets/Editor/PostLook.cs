@@ -49,7 +49,14 @@ public static class PostLook
         }
 
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.22f, 0.25f, 0.34f);
+        RenderSettings.ambientLight = new Color(0.3f, 0.34f, 0.46f);
+
+        foreach (var sun in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
+        {
+            if (sun.type != LightType.Directional) continue;
+            sun.intensity = 1.8f;
+            sun.color = new Color(1f, 0.92f, 0.82f);
+        }
 
         var stats = Object.FindFirstObjectByType<PlayerStats>();
         if (stats != null && stats.gameOverPanel != null) stats.gameOverPanel.SetActive(false);
