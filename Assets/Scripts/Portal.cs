@@ -9,14 +9,14 @@ public class Portal : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        PlayerStats stats = other.GetComponent<PlayerStats>();
-        if (stats == null) stats = other.GetComponentInParent<PlayerStats>();
+        EstadisticasJugador stats = other.GetComponent<EstadisticasJugador>();
+        if (stats == null) stats = other.GetComponentInParent<EstadisticasJugador>();
         if (stats == null) return;
 
-        TargetLock targetLock = stats.GetComponent<TargetLock>();
+        FijarObjetivo targetLock = stats.GetComponent<FijarObjetivo>();
         if (targetLock != null) targetLock.UnlockTarget();
 
-        PlayerController controller = stats.GetComponent<PlayerController>();
+        ControlJugador controller = stats.GetComponent<ControlJugador>();
         if (controller != null) controller.ResetMotionState(destination);
         else stats.transform.position = destination;
 
@@ -24,8 +24,8 @@ public class Portal : MonoBehaviour
         stats.currentHP = stats.maxHP;
         stats.currentStamina = stats.maxStamina;
 
-        GameFeedback.Play(GameFeedback.Cue.Reward);
-        GameFeedback.Burst(destination, new Color(0.2f, 0.9f, 0.9f), 40, 0.25f);
-        HUDManager.Notify(arrivalMessage, 4f);
+        EfectosJuego.Play(EfectosJuego.TipoSonido.Recompensa);
+        EfectosJuego.Burst(destination, new Color(0.2f, 0.9f, 0.9f), 40, 0.25f);
+        GestorHUD.Notify(arrivalMessage, 4f);
     }
 }

@@ -1,0 +1,241 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Audio;
+
+/// <summary>Procedural audio and particle feedback so the vertical slice has no missing scene references.</summary>
+public sealed class EfectosJuego : MonoBehaviour
+{
+    public enum TipoSonido { Disparo, Esquive, Golpe, Impacto, Embestida, JefeCae, Recompensa }
+
+    private static EfectosJuego instance;
+    private readonly Dictionary<TipoSonido, AudioClip> clips = new Dictionary<TipoSonido, AudioClip>();
+    private static Material particleMaterial;
+    private AudioSource musicSource;
+    private AudioSource ambienceSource;
+    private AudioSource sfxSource;
+    private AudioLowPassFilter musicFilter;
+    private VidaJefe boss;
+    private float nextBossSearch;
+    private bool mixerRouted;
+    private const int SampleRate = 22050;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Bootstrap()
+    {
+        EnsureInstance();
+    }
+
+    private static EfectosJuego EnsureInstance()
+    {
+        if (instance != null) return instance;
+        instance = FindFirstObjectByType<EfectosJuego>();
+        if (instance != null) return instance;
+        var host = new GameObject("Efectos Juego");
+        instance = host.AddComponent<EfectosJuego>();
+        DontDestroyOnLoad(host);
+        return instance;
+    }
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        GameObject musicObject = new GameObject("Fuente Musica");
+        musicObject.transform.SetParent(transform, false);
+        musicSource = musicObject.AddComponent<AudioSource>();
+        musicSource.loop = true;
+        musicSource.spatialBlend = 0f;
+        musicSource.volume = 0.22f;
+        musicSource.clip = CreateMusic();
+        musicFilter = musicSource.gameObject.AddComponent<AudioLowPassFilter>();
+        musicFilter.cutoffFrequency = 22000f;
+
+        ambienceSource = gameObject.AddComponent<AudioSource>();
+        ambienceSource.loop = true;
+        ambienceSource.spatialBlend = 0f;
+        ambienceSource.volume = 0.16f;
+        ambienceSource.clip = CreateAmbience();
+
+        sfxSource = gameObject.AddComponent<AudioSource>();
+        sfxSource.spatialBlend = 0f;
+        sfxSource.volume = 0.72f;
+
+        musicSource.Play();
+        ambienceSource.Play();
+    }
+
+    private void Update()
+    {
+        if (!mixerRouted)
+            mixerRouted = RouteAudioSources();
+
+        nextBossSearch -= Time.deltaTime;
+        if (boss == null && nextBossSearch <= 0f)
+        {
+            boss = FindFirstObjectByType<VidaJefe>();
+            nextBossSearch = 0.5f;
+        }
+
+        if (boss != null && !boss.isActiveAndEnabled)
+            boss = null;
+
+        float pitchTarget = 0.94f;
+        float cutoffTarget = 14000f;
+        if (boss != null)
+        {
+            float health = boss.maxHP > 0f ? boss.currentHP / boss.maxHP : 1f;
+            if (health > 0.35f)
+            {
+                pitchTarget = 1.04f;
+                cutoffTarget = 8500f;
+            }
+            else
+            {
+                pitchTarget = 0.88f;
+                cutoffTarget = 1800f;
+            }
+        }
+
+        float blend = 1f - Mathf.Exp(-3f * Time.deltaTime);
+        musicSource.pitch = Mathf.Lerp(musicSource.pitch, pitchTarget, blend);
+        musicFilter.cutoffFrequency = Mathf.Lerp(musicFilter.cutoffFrequency, cutoffTarget, blend);
+    }
+
+    private bool RouteAudioSources()
+    {
+        AudioMixer mixer = Narracion.Mixer;
+        if (mixer == null) return false;
+
+        AudioMixerGroup[] music = mixer.FindMatchingGroups("Musica");
+        AudioMixerGroup[] sfx = mixer.FindMatchingGroups("SFX");
+        AudioMixerGroup[] ambience = mixer.FindMatchingGroups("Ambiente");
+        if (music.Length == 0 || sfx.Length == 0 || ambience.Length == 0) return false;
+
+        musicSource.outputAudioMixerGroup = music[0];
+        sfxSource.outputAudioMixerGroup = sfx[0];
+        ambienceSource.outputAudioMixerGroup = ambience[0];
+        return true;
+    }
+
+    public static void Play(TipoSonido cue)
+    {
+        EfectosJuego feedback = EnsureInstance();
+        if (feedback.sfxSource != null)
+            feedback.sfxSource.PlayOneShot(feedback.GetClip(cue));
+    }
+
+    public static void Burst(Vector3 position, Color color, int count = 20, float size = 0.2f)
+    {
+        EnsureInstance().CreateBurstAt(position, color, count, size);
+    }
+
+    private AudioClip GetClip(TipoSonido cue)
+    {
+        if (!clips.TryGetValue(cue, out AudioClip clip))
+        {
+            clip = CreateCue(cue);
+            clips.Add(cue, clip);
+        }
+        return clip;
+    }
+
+    private static AudioClip MakeClip(string name, float seconds, Func<float, float> sample)
+    {
+        int count = Mathf.CeilToInt(seconds * SampleRate);
+        float[] data = new float[count];
+        for (int i = 0; i < count; i++)
+        {
+            float t = i / (float)SampleRate;
+            data[i] = Mathf.Clamp(sample(t), -1f, 1f);
+        }
+        AudioClip clip = AudioClip.Create(name, count, 1, SampleRate, false);
+        clip.SetData(data, 0);
+        return clip;
+    }
+
+    private AudioClip CreateMusic()
+    {
+        const float length = 16f;
+        float[] roots = { 55f, 65.41f, 73.42f, 49f };
+        return MakeClip("Musica Umbral", length, t =>
+        {
+            float bar = Mathf.Floor(t / 4f);
+            float root = roots[(int)bar % roots.Length];
+            float swell = 0.55f + 0.45f * Mathf.Sin(t * 0.32f);
+            float low = Mathf.Sin(2f * Mathf.PI * root * t);
+            float fifth = Mathf.Sin(2f * Mathf.PI * root * 1.5f * t + 0.3f);
+            float shimmer = Mathf.Sin(2f * Mathf.PI * root * 4f * t) * (0.25f + 0.75f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(t * Mathf.PI / 2f)), 8f));
+            return swell * (low * 0.11f + fifth * 0.045f + shimmer * 0.018f);
+        });
+    }
+
+    private AudioClip CreateAmbience()
+    {
+        const float length = 12f;
+        return MakeClip("Viento Arena", length, t =>
+        {
+            float wind = Mathf.Sin(2f * Mathf.PI * 0.17f * t) * 0.5f + Mathf.Sin(2f * Mathf.PI * 0.071f * t + 1.4f) * 0.5f;
+            float rumble = Mathf.Sin(2f * Mathf.PI * 38f * t) * 0.5f + Mathf.Sin(2f * Mathf.PI * 52f * t + 0.7f) * 0.5f;
+            return wind * rumble * 0.055f;
+        });
+    }
+
+    private AudioClip CreateCue(TipoSonido cue)
+    {
+        float duration = cue == TipoSonido.Embestida || cue == TipoSonido.JefeCae || cue == TipoSonido.Recompensa ? 0.75f : 0.28f;
+        return MakeClip("SFX " + cue, duration, t =>
+        {
+            float n = t / duration;
+            float envelope = Mathf.Pow(1f - n, cue == TipoSonido.Recompensa ? 0.8f : 2f);
+            float noise = Mathf.Sin(2f * Mathf.PI * (311f + 1200f * n) * t) * 0.35f + Mathf.Sin(2f * Mathf.PI * 83f * t) * 0.25f;
+            switch (cue)
+            {
+                case TipoSonido.Disparo: return envelope * (noise + Mathf.Sin(2f * Mathf.PI * (220f - 130f * n) * t) * 0.4f) * 0.48f;
+                case TipoSonido.Esquive: return envelope * (Mathf.Sin(2f * Mathf.PI * (850f - 600f * n) * t) * 0.35f + noise * 0.25f);
+                case TipoSonido.Golpe: return envelope * (Mathf.Sin(2f * Mathf.PI * (120f - 70f * n) * t) * 0.65f + noise * 0.2f);
+                case TipoSonido.Impacto: return envelope * (Mathf.Sin(2f * Mathf.PI * (95f - 40f * n) * t) * 0.55f + noise * 0.3f);
+                case TipoSonido.Embestida: return (0.45f + 0.55f * n) * (Mathf.Sin(2f * Mathf.PI * 48f * t) * 0.28f + noise * 0.16f);
+                case TipoSonido.JefeCae: return envelope * (Mathf.Sin(2f * Mathf.PI * (150f - 80f * n) * t) * 0.55f + Mathf.Sin(2f * Mathf.PI * (225f - 140f * n) * t) * 0.2f);
+                case TipoSonido.Recompensa: return envelope * (Mathf.Sin(2f * Mathf.PI * 523.25f * t) * 0.27f + Mathf.Sin(2f * Mathf.PI * 659.25f * t) * 0.2f + Mathf.Sin(2f * Mathf.PI * 783.99f * t) * 0.16f);
+                default: return 0f;
+            }
+        });
+    }
+
+    private void CreateBurstAt(Vector3 position, Color color, int count, float size)
+    {
+        GameObject burst = new GameObject("Rafaga Efectos");
+        burst.transform.position = position;
+        ParticleSystem particles = burst.AddComponent<ParticleSystem>();
+        particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        var main = particles.main;
+        main.playOnAwake = false;
+        main.duration = 0.45f;
+        main.loop = false;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.8f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(1.5f, 4.5f);
+        main.startSize = new ParticleSystem.MinMaxCurve(size * 0.45f, size);
+        main.startColor = color;
+        main.gravityModifier = 0.45f;
+        main.maxParticles = Mathf.Max(1, count);
+        var emission = particles.emission;
+        emission.rateOverTime = 0f;
+        emission.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)Mathf.Clamp(count, 1, 100)) });
+        var shape = particles.shape;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = 0.18f;
+        var renderer = particles.GetComponent<ParticleSystemRenderer>();
+        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit") ?? Shader.Find("Sprites/Default");
+        if (particleMaterial == null && shader != null) particleMaterial = new Material(shader);
+        if (particleMaterial != null) renderer.sharedMaterial = particleMaterial;
+        particles.Play();
+        Destroy(burst, 2f);
+    }
+}
