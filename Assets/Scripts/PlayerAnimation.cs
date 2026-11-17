@@ -32,4 +32,9 @@ public class PlayerAnimation : MonoBehaviour
     {
         if (animator != null) animator.SetTrigger("Throw");
     }
+
+    public void Slash()
+    {
+        if (animator != null) animator.SetTrigger("Slash");
+    }
 }

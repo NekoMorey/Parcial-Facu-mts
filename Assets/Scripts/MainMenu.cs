@@ -62,7 +62,7 @@ public class MainMenu : MonoBehaviour
         controls = Panel("Controles");
         Label(controls.transform, "CONTROLES", 0, 190, 54, Color.white);
         Label(controls.transform,
-            "WASD  Moverse\nEspacio  Saltar\nShift  Rodar (gasta estamina)\nClick izquierdo  Lanzar roca\nR  Fijar objetivo\nE  Interactuar\nEsc / P  Pausa",
+            "WASD  Moverse\nEspacio  Saltar\nShift  Rodar (gasta estamina)\nClick izquierdo  Disparar pistola\nClick derecho  Golpe de daga\nR  Fijar objetivo\nE  Interactuar\nEsc / P  Pausa",
             0, 20, 30, new Color(1f, 1f, 1f, 0.9f), 520);
         Button(controls.transform, "Volver", -190, () => Switch(home));
 

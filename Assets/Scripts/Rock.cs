@@ -13,6 +13,12 @@ public class Rock : MonoBehaviour
     void Start()
     {
         Destroy(gameObject, lifeTime);
+
+        GameObject player = GameObject.FindWithTag("Player");
+        Collider own = GetComponent<Collider>();
+        if (player == null || own == null) return;
+        foreach (Collider other in player.GetComponentsInChildren<Collider>())
+            Physics.IgnoreCollision(own, other);
     }
 
     private void OnCollisionEnter(Collision collision)

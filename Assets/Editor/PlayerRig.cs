@@ -56,6 +56,7 @@ public static class PlayerRig
         AssetDatabase.SaveAssets();
         EditorSceneManager.MarkSceneDirty(player.scene);
         Debug.Log("Personaje: modelo y animaciones listos.");
+        Weapons.Build();
     }
 
     private static void Limb(string name, Transform body, Vector3 pivot, Vector3 size, Material main, Material tip)
@@ -106,8 +107,14 @@ public static class PlayerRig
 
         AnimationClip toss = MakeClip("Player_Throw", false, new Dictionary<string, Keyframe[]>
         {
-            { ArmR, Keys(0f, 0f, 0.1f, -170f, 0.2f, 45f, 0.32f, 0f) },
-            { Body, Keys(0f, 0f, 0.1f, -8f, 0.2f, 12f, 0.32f, 0f) }
+            { ArmL, Keys(0f, 0f, 0.07f, -92f, 0.14f, -104f, 0.22f, -92f, 0.36f, 0f) },
+            { Body, Keys(0f, 0f, 0.07f, 6f, 0.36f, 0f) }
+        });
+
+        AnimationClip slash = MakeClip("Player_Slash", false, new Dictionary<string, Keyframe[]>
+        {
+            { ArmR, Keys(0f, 0f, 0.1f, -140f, 0.2f, -20f, 0.32f, 15f, 0.46f, 0f) },
+            { Body, Keys(0f, 0f, 0.1f, -14f, 0.2f, 16f, 0.46f, 0f) }
         });
 
         string path = Folder + "/Player.controller";
@@ -118,6 +125,7 @@ public static class PlayerRig
         controller.AddParameter("Grounded", AnimatorControllerParameterType.Bool);
         controller.AddParameter("Dodge", AnimatorControllerParameterType.Trigger);
         controller.AddParameter("Throw", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Slash", AnimatorControllerParameterType.Trigger);
 
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
         AnimatorState idleState = machine.AddState("Idle");
@@ -125,12 +133,14 @@ public static class PlayerRig
         AnimatorState jumpState = machine.AddState("Jump");
         AnimatorState rollState = machine.AddState("Roll");
         AnimatorState throwState = machine.AddState("Throw");
+        AnimatorState slashState = machine.AddState("Slash");
 
         idleState.motion = idle;
         runState.motion = run;
         jumpState.motion = jump;
         rollState.motion = roll;
         throwState.motion = toss;
+        slashState.motion = slash;
         machine.defaultState = idleState;
 
         Link(idleState, runState).AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
@@ -146,6 +156,11 @@ public static class PlayerRig
         Link(runState, throwState).AddCondition(AnimatorConditionMode.If, 0f, "Throw");
         Link(jumpState, throwState).AddCondition(AnimatorConditionMode.If, 0f, "Throw");
 
+        Link(idleState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Slash");
+        Link(runState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Slash");
+        Link(jumpState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Slash");
+
+        Return(slashState, idleState);
         Return(rollState, idleState);
         Return(throwState, idleState);
 
