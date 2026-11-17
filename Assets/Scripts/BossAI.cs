@@ -26,6 +26,8 @@ public class BossAI : MonoBehaviour
 
     public bool isPlayerDetected = false;
 
+    private bool AgentReady => agent != null && agent.isOnNavMesh;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -50,25 +52,21 @@ public class BossAI : MonoBehaviour
         attackCooldown -= Time.deltaTime;
 
         if (distanceToPlayer <= detectionRange)
-        {
             isPlayerDetected = true;
-        }
 
         if (!isPlayerDetected)
         {
-            agent.isStopped = true;
+            if (AgentReady) agent.isStopped = true;
             return;
         }
 
         if (distanceToPlayer <= attackRange)
         {
-            agent.isStopped = true;
+            if (AgentReady) agent.isStopped = true;
             LookAtPlayer();
 
             if (attackCooldown <= 0f)
-            {
                 ExecuteMeleeAttack();
-            }
         }
         else if (distanceToPlayer >= chargeRange && attackCooldown <= 0f)
         {
@@ -76,9 +74,12 @@ public class BossAI : MonoBehaviour
         }
         else
         {
-            agent.isStopped = false;
-            agent.speed = originalSpeed;
-            agent.SetDestination(player.position);
+            if (AgentReady)
+            {
+                agent.isStopped = false;
+                agent.speed = originalSpeed;
+                agent.SetDestination(player.position);
+            }
         }
     }
 
@@ -87,10 +88,7 @@ public class BossAI : MonoBehaviour
         Vector3 direction = (player.position - transform.position).normalized;
         direction.y = 0;
         if (direction != Vector3.zero)
-        {
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 12f);
-        }
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Time.deltaTime * 12f);
     }
 
     void ExecuteMeleeAttack()
@@ -108,10 +106,7 @@ public class BossAI : MonoBehaviour
         if (player != null && Vector3.Distance(transform.position, player.position) <= attackRange + 1.5f)
         {
             PlayerStats stats = player.GetComponent<PlayerStats>();
-            if (stats != null)
-            {
-                stats.TakeDamage(meleeDamage);
-            }
+            if (stats != null) stats.TakeDamage(meleeDamage);
         }
         isAttacking = false;
     }
@@ -120,30 +115,32 @@ public class BossAI : MonoBehaviour
     {
         isAttacking = true;
         attackCooldown = timeBetweenAttacks + 1.2f;
+
         if (animator != null) animator.SetTrigger("Charge");
         GameFeedback.Play(GameFeedback.Cue.Charge);
+
         if (!dangerLinePlayed)
         {
             VoiceOver.PlayDangerLine();
             dangerLinePlayed = true;
         }
 
-        agent.isStopped = true;
         Vector3 targetDirection = (player.position - transform.position).normalized;
         targetDirection.y = 0;
+
+        if (AgentReady) agent.isStopped = true;
         if (targetDirection != Vector3.zero)
-        {
             transform.rotation = Quaternion.LookRotation(targetDirection);
-        }
 
         yield return new WaitForSeconds(0.3f);
 
-        agent.isStopped = false;
-        agent.speed = chargeSpeed;
-        agent.acceleration = 40f;
-
-        Vector3 chargeTarget = player.position + targetDirection * 4f;
-        agent.SetDestination(chargeTarget);
+        if (AgentReady)
+        {
+            agent.isStopped = false;
+            agent.speed = chargeSpeed;
+            agent.acceleration = 40f;
+            agent.SetDestination(player.position + targetDirection * 4f);
+        }
 
         float chargeTimer = 0f;
         bool hitPlayer = false;
@@ -155,19 +152,19 @@ public class BossAI : MonoBehaviour
             if (!hitPlayer && Vector3.Distance(transform.position, player.position) <= 2.5f)
             {
                 PlayerStats stats = player.GetComponent<PlayerStats>();
-                if (stats != null)
-                {
-                    stats.TakeDamage(chargeDamage);
-                }
+                if (stats != null) stats.TakeDamage(chargeDamage);
                 hitPlayer = true;
             }
 
             yield return null;
         }
 
-        agent.speed = originalSpeed;
-        agent.acceleration = 8f;
+        if (AgentReady)
+        {
+            agent.speed = originalSpeed;
+            agent.acceleration = 8f;
+        }
+
         isAttacking = false;
     }
-
 }
