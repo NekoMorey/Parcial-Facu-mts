@@ -30,6 +30,8 @@ public class PlayerAnimation : MonoBehaviour
 
     public void Throw()
     {
+        PlayerWeapons weapons = GetComponent<PlayerWeapons>();
+        if (weapons != null) weapons.Aim();
         if (animator != null) animator.SetTrigger("Throw");
     }
 

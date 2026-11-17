@@ -221,6 +221,7 @@ public static class PlayerRig
         settings.loopTime = loop;
         AnimationUtility.SetAnimationClipSettings(clip, settings);
         EditorUtility.SetDirty(clip);
+        AssetDatabase.SaveAssetIfDirty(clip);
         return clip;
     }
 }

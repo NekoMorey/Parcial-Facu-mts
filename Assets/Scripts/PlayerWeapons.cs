@@ -12,6 +12,8 @@ public class PlayerWeapons : MonoBehaviour
     public float hitDelay = 0.14f;
 
     private float nextSwing;
+    private float aimStart = -10f;
+    private Transform leftArm;
     private PlayerAnimation playerAnimation;
     private PlayerStats stats;
 
@@ -19,6 +21,22 @@ public class PlayerWeapons : MonoBehaviour
     {
         playerAnimation = GetComponent<PlayerAnimation>();
         stats = GetComponent<PlayerStats>();
+        leftArm = transform.Find("Modelo/Cuerpo/Arm_L");
+    }
+
+    public void Aim()
+    {
+        aimStart = Time.time;
+    }
+
+    void LateUpdate()
+    {
+        if (leftArm == null) return;
+        float t = Time.time - aimStart;
+        if (t < 0f || t > 0.42f) return;
+
+        float raise = t < 0.08f ? t / 0.08f : (t < 0.28f ? 1f : 1f - (t - 0.28f) / 0.14f);
+        leftArm.localRotation = Quaternion.Euler(-95f * Mathf.Clamp01(raise), 0f, 0f);
     }
 
     void Update()

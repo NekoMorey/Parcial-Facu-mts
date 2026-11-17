@@ -27,8 +27,6 @@ public static class Weapons
         Material brass = BuilderUtils.Mat("ArmaLaton", new Color(0.78f, 0.6f, 0.25f), 0.8f, 0.5f);
         Material glow = BuilderUtils.Mat("ArmaBrillo", new Color(0.35f, 0.9f, 1f), 0f, 0.8f, 4f);
 
-        BuilderUtils.Remove("Pistola");
-        BuilderUtils.Remove("Daga");
         Transform oldGun = armL.Find("Pistola");
         if (oldGun != null) Object.DestroyImmediate(oldGun.gameObject);
         Transform oldDagger = armR.Find("Daga");
