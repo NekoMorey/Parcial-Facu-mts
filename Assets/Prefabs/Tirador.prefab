@@ -211,7 +211,7 @@ GameObject:
   - component: {fileID: 1596974912720754520}
   - component: {fileID: 605579016865701084}
   m_Layer: 0
-  m_Name: Visor
+  m_Name: Visera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

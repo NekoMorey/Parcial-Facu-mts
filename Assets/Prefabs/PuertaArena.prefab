@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4670402491674583246}
   - component: {fileID: 2976024651202197142}
   m_Layer: 0
-  m_Name: ArenaDoor
+  m_Name: PuertaArena
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -141,7 +141,7 @@ GameObject:
   - component: {fileID: 5393463182385439887}
   - component: {fileID: 4418710792290155694}
   m_Layer: 0
-  m_Name: Door_Seal
+  m_Name: Puerta_Sello
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

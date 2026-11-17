@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6283133051233376381}
   - component: {fileID: 3473932209397763432}
   m_Layer: 0
-  m_Name: Chest_Emblem
+  m_Name: Pecho_Emblema
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 5105680239456760767}
   - component: {fileID: 4012206842894333077}
   m_Layer: 0
-  m_Name: Shield_Emblem
+  m_Name: Escudo_Emblema
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -190,7 +190,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8887816343544966248}
   m_Layer: 0
-  m_Name: Arm_L
+  m_Name: Brazo_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5063,7 +5063,7 @@ GameObject:
   - component: {fileID: 6776311280849477204}
   - component: {fileID: 1672869455651296028}
   m_Layer: 0
-  m_Name: Arm_R_Mesh
+  m_Name: Brazo_Der_Malla
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5153,7 +5153,7 @@ GameObject:
   - component: {fileID: 5079537356189016845}
   - component: {fileID: 5815203101391084595}
   m_Layer: 0
-  m_Name: Tasset_L
+  m_Name: Faldar_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5243,7 +5243,7 @@ GameObject:
   - component: {fileID: 6609951287648307953}
   - component: {fileID: 3375661204738186574}
   m_Layer: 0
-  m_Name: Waist
+  m_Name: Cintura
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5333,7 +5333,7 @@ GameObject:
   - component: {fileID: 6660698695896029053}
   - component: {fileID: 5056658756861735321}
   m_Layer: 0
-  m_Name: Gauntlet_R
+  m_Name: Guantelete_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5423,7 +5423,7 @@ GameObject:
   - component: {fileID: 4397834474267199498}
   - component: {fileID: 8176054389769444245}
   m_Layer: 0
-  m_Name: Horn_R
+  m_Name: Cuerno_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5513,7 +5513,7 @@ GameObject:
   - component: {fileID: 3784065936965610555}
   - component: {fileID: 1528772331558299401}
   m_Layer: 0
-  m_Name: Arm_L_Mesh
+  m_Name: Brazo_Izq_Malla
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5603,7 +5603,7 @@ GameObject:
   - component: {fileID: 2885701496598697880}
   - component: {fileID: 4383775330237283222}
   m_Layer: 0
-  m_Name: Cape
+  m_Name: Capa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5693,7 +5693,7 @@ GameObject:
   - component: {fileID: 149871231450018601}
   - component: {fileID: 7394145251124758770}
   m_Layer: 0
-  m_Name: Leg_R_Mesh
+  m_Name: Pierna_Der_Malla
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5781,7 +5781,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9195581720143851967}
   m_Layer: 0
-  m_Name: Leg_R
+  m_Name: Pierna_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5816,7 +5816,7 @@ GameObject:
   - component: {fileID: 1887707786415584791}
   - component: {fileID: 7924565931414095272}
   m_Layer: 0
-  m_Name: Leg_L_Mesh
+  m_Name: Pierna_Izq_Malla
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5906,7 +5906,7 @@ GameObject:
   - component: {fileID: 5862116276125935902}
   - component: {fileID: 7974597976231827445}
   m_Layer: 0
-  m_Name: Tasset_R
+  m_Name: Faldar_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5994,7 +5994,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8381538978247448648}
   m_Layer: 0
-  m_Name: Arm_R
+  m_Name: Brazo_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6032,7 +6032,7 @@ GameObject:
   - component: {fileID: 6552121062653766508}
   - component: {fileID: 8312843661122223395}
   m_Layer: 0
-  m_Name: Shield
+  m_Name: Escudo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6122,7 +6122,7 @@ GameObject:
   - component: {fileID: 2777785786149445666}
   - component: {fileID: 5112054985261648080}
   m_Layer: 0
-  m_Name: Helmet
+  m_Name: Casco
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6212,7 +6212,7 @@ GameObject:
   - component: {fileID: 8654147374169150572}
   - component: {fileID: 2201958641755965123}
   m_Layer: 0
-  m_Name: Sword_Blade
+  m_Name: Espada_Hoja
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6302,7 +6302,7 @@ GameObject:
   - component: {fileID: 4563790209312647329}
   - component: {fileID: 5176139260874685114}
   m_Layer: 0
-  m_Name: Boot_R
+  m_Name: Bota_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6392,7 +6392,7 @@ GameObject:
   - component: {fileID: 1195011587565400258}
   - component: {fileID: 5086926642969894501}
   m_Layer: 0
-  m_Name: Sword_Grip
+  m_Name: Espada_Empunadura
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6482,7 +6482,7 @@ GameObject:
   - component: {fileID: 359076251547790042}
   - component: {fileID: 6490981376934129925}
   m_Layer: 0
-  m_Name: Sword_Guard
+  m_Name: Espada_Guarda
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6572,7 +6572,7 @@ GameObject:
   - component: {fileID: 7219825462448256109}
   - component: {fileID: 3678381805822346794}
   m_Layer: 0
-  m_Name: Pauldron_R
+  m_Name: Hombrera_Der
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6662,7 +6662,7 @@ GameObject:
   - component: {fileID: 5371416809258787485}
   - component: {fileID: 8156483986362060921}
   m_Layer: 0
-  m_Name: Helmet_Crest
+  m_Name: Casco_Cresta
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6757,7 +6757,7 @@ GameObject:
   - component: {fileID: 5198267825170793715}
   - component: {fileID: 4841629860932159643}
   m_Layer: 0
-  m_Name: Boss
+  m_Name: Jefe
   m_TagString: Boss
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6852,6 +6852,8 @@ MonoBehaviour:
   bossName: "Guardi\xE1n del Umbral"
   maxHP: 500
   currentHP: 0
+  isFinalBoss: 0
+  engaged: 0
 --- !u!114 &3380335266275317764
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7004,7 +7006,7 @@ GameObject:
   - component: {fileID: 2499506404708745246}
   - component: {fileID: 6428819358001836745}
   m_Layer: 0
-  m_Name: Gauntlet_L
+  m_Name: Guantelete_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7094,7 +7096,7 @@ GameObject:
   - component: {fileID: 8976716416475278954}
   - component: {fileID: 6695962952703939661}
   m_Layer: 0
-  m_Name: Visor
+  m_Name: Visera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7184,7 +7186,7 @@ GameObject:
   - component: {fileID: 2665484195170196298}
   - component: {fileID: 2068727970879507464}
   m_Layer: 0
-  m_Name: Pauldron_L
+  m_Name: Hombrera_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7306,7 +7308,7 @@ GameObject:
   - component: {fileID: 8387510306845825503}
   - component: {fileID: 632377579114491190}
   m_Layer: 0
-  m_Name: Chestplate
+  m_Name: Peto
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7396,7 +7398,7 @@ GameObject:
   - component: {fileID: 8961709419897779040}
   - component: {fileID: 6025710282681142646}
   m_Layer: 0
-  m_Name: Horn_L
+  m_Name: Cuerno_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7484,7 +7486,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4241596182783964551}
   m_Layer: 0
-  m_Name: Leg_L
+  m_Name: Pierna_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7519,7 +7521,7 @@ GameObject:
   - component: {fileID: 3365572136072377827}
   - component: {fileID: 8042038662871856077}
   m_Layer: 0
-  m_Name: Boot_L
+  m_Name: Bota_Izq
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

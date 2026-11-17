@@ -1272,7 +1272,7 @@ GameObject:
   - component: {fileID: 7462805655553638375}
   - component: {fileID: 1663508183422373391}
   m_Layer: 0
-  m_Name: FinalChest
+  m_Name: CofreFinal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
