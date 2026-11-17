@@ -3,23 +3,23 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public static class GameBuild
+public static class CompilarJuego
 {
-    private const string ScenePath = "Assets/Scenes/scene.unity";
+    private const string ScenePath = "Assets/Escenas/Escena.unity";
 
     [MenuItem("Tools/Umbral/0 Armar todo")]
     public static void BuildEverything()
     {
-        MapExtras.Build();
-        PlayerRig.Build();
-        BossKnight.Build();
-        AbyssLevel.Build();
-        TerrainMaker.Build();
-        Ambience.Build();
-        LightBake.Bake();
+        ExtrasMapa.Build();
+        EsqueletoJugador.Build();
+        JefeCaballero.Build();
+        NivelAbismo.Build();
+        CreadorTerreno.Build();
+        Ambientacion.Build();
+        HornearLuz.Bake();
     }
 
-    [MenuItem("Tools/Umbral/6 Build Windows")]
+    [MenuItem("Tools/Umbral/6 Compilar para Windows")]
     public static void BuildWindows()
     {
         EditorSceneManager.SaveOpenScenes();

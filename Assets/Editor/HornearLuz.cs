@@ -4,9 +4,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 
-public static class LightBake
+public static class HornearLuz
 {
-    private const string SettingsPath = "Assets/Settings/UmbralLighting.lighting";
+    private const string SettingsPath = "Assets/Configuracion/UmbralIluminacion.lighting";
 
     [MenuItem("Tools/Umbral/5 Iluminacion y bake")]
     public static void Bake()
@@ -37,7 +37,7 @@ public static class LightBake
     {
         foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (light.GetComponentInParent<KeyPickup>(true) != null) continue;
+            if (light.GetComponentInParent<RecogerLlave>(true) != null) continue;
             if (light.GetComponentInParent<Portal>(true) != null) continue;
 
             if (light.type == LightType.Directional)
@@ -57,7 +57,7 @@ public static class LightBake
 
     private static bool CanBeStatic(Transform target)
     {
-        if (target.name.Contains("Gate") || target.name == "Sea") return false;
+        if (target.name.Contains("Reja") || target.name == "Mar") return false;
 
         for (Transform current = target; current != null; current = current.parent)
         {
@@ -66,12 +66,12 @@ public static class LightBake
             if (current.GetComponent<Animator>() != null) return false;
             if (current.GetComponent<NavMeshAgent>() != null) return false;
             if (current.GetComponent<Terrain>() != null) return false;
-            if (current.GetComponent<ChestBase>() != null) return false;
-            if (current.GetComponent<BossStats>() != null) return false;
-            if (current.GetComponent<UpgradeChest>() != null) return false;
-            if (current.GetComponent<LockedDoor>() != null) return false;
-            if (current.GetComponent<ShootableSwitch>() != null) return false;
-            if (current.name == "Cage_Gate") return false;
+            if (current.GetComponent<CofreBase>() != null) return false;
+            if (current.GetComponent<VidaJefe>() != null) return false;
+            if (current.GetComponent<CofreMejora>() != null) return false;
+            if (current.GetComponent<PuertaCerrada>() != null) return false;
+            if (current.GetComponent<InterruptorDisparable>() != null) return false;
+            if (current.name == "Jaula_Reja") return false;
         }
 
         return true;
@@ -100,8 +100,8 @@ public static class LightBake
 
     private static void PlaceProbes()
     {
-        BuilderUtils.Remove("Light Probes");
-        GameObject go = new GameObject("Light Probes");
+        UtilesConstructor.Remove("Sondas de luz");
+        GameObject go = new GameObject("Sondas de luz");
         LightProbeGroup group = go.AddComponent<LightProbeGroup>();
 
         List<Vector3> points = new List<Vector3>();
@@ -119,7 +119,7 @@ public static class LightBake
 
     private static void Reflection(Transform parent, string name, Vector3 center, Vector3 size)
     {
-        GameObject go = BuilderUtils.Group(name, parent);
+        GameObject go = UtilesConstructor.Group(name, parent);
         go.transform.position = center;
 
         ReflectionProbe probe = go.AddComponent<ReflectionProbe>();
@@ -131,10 +131,10 @@ public static class LightBake
 
     private static void PlaceReflections()
     {
-        BuilderUtils.Remove("Reflection Probes");
-        Transform root = new GameObject("Reflection Probes").transform;
+        UtilesConstructor.Remove("Sondas de reflejo");
+        Transform root = new GameObject("Sondas de reflejo").transform;
 
-        Reflection(root, "Probe_Lobby", new Vector3(0f, 3f, -20f), new Vector3(22f, 6f, 22f));
+        Reflection(root, "Probe_Vestibulo", new Vector3(0f, 3f, -20f), new Vector3(22f, 6f, 22f));
         Reflection(root, "Probe_Cripta", new Vector3(19f, 3f, -20f), new Vector3(15f, 6f, 15f));
         Reflection(root, "Probe_Parkour", new Vector3(0f, 4f, 24f), new Vector3(26f, 20f, 46f));
         Reflection(root, "Probe_Abismo", new Vector3(0f, 5f, 335f), new Vector3(60f, 14f, 100f));
@@ -143,7 +143,7 @@ public static class LightBake
 
     private static void ApplySettings()
     {
-        BuilderUtils.EnsureFolder("Assets/Settings");
+        UtilesConstructor.EnsureFolder("Assets/Configuracion");
 
         LightingSettings settings = AssetDatabase.LoadAssetAtPath<LightingSettings>(SettingsPath);
         if (settings == null)

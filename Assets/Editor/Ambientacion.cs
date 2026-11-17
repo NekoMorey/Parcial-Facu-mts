@@ -2,16 +2,16 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public static class Ambience
+public static class Ambientacion
 {
     private const string RootName = "Ambiente";
 
     [MenuItem("Tools/Umbral/4 Particulas y prefabs")]
     public static void Build()
     {
-        BuilderUtils.Remove(RootName);
-        Transform root = BuilderUtils.Group(RootName, null).transform;
-        Material material = BuilderUtils.ParticleMaterial();
+        UtilesConstructor.Remove(RootName);
+        Transform root = UtilesConstructor.Group(RootName, null).transform;
+        Material material = UtilesConstructor.ParticleMaterial();
 
         foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
         {
@@ -21,26 +21,26 @@ public static class Ambience
         }
 
         Dust("Polvo_Arena", root, new Vector3(0f, 10.5f, 78f), new Vector3(34f, 7f, 34f), 90, new Color(1f, 0.6f, 0.4f, 0.35f), material);
-        Dust("Polvo_Lobby", root, new Vector3(0f, 3f, -20f), new Vector3(20f, 5f, 20f), 40, new Color(0.8f, 0.85f, 1f, 0.3f), material);
+        Dust("Polvo_Vestibulo", root, new Vector3(0f, 3f, -20f), new Vector3(20f, 5f, 20f), 40, new Color(0.8f, 0.85f, 1f, 0.3f), material);
         Dust("Polvo_Cripta", root, new Vector3(19f, 3f, -20f), new Vector3(14f, 5f, 14f), 35, new Color(0.7f, 0.5f, 1f, 0.35f), material);
 
         GameObject boss = GameObject.FindWithTag("Boss");
         if (boss != null)
         {
-            BuilderUtils.Unpack(boss);
+            UtilesConstructor.Unpack(boss);
             Transform oldAura = boss.transform.Find("Aura");
             if (oldAura != null) Object.DestroyImmediate(oldAura.gameObject);
             Aura(boss.transform, material);
 
-            BuilderUtils.EnsureFolder(BuilderUtils.PrefabFolder);
-            PrefabUtility.SaveAsPrefabAssetAndConnect(boss, BuilderUtils.PrefabFolder + "/Boss.prefab", InteractionMode.AutomatedAction);
+            UtilesConstructor.EnsureFolder(UtilesConstructor.PrefabFolder);
+            PrefabUtility.SaveAsPrefabAssetAndConnect(boss, UtilesConstructor.PrefabFolder + "/Jefe.prefab", InteractionMode.AutomatedAction);
         }
 
         GameObject chest = GameObject.Find("Cofre");
         if (chest != null && !PrefabUtility.IsPartOfPrefabInstance(chest))
         {
-            BuilderUtils.EnsureFolder(BuilderUtils.PrefabFolder);
-            PrefabUtility.SaveAsPrefabAssetAndConnect(chest, BuilderUtils.PrefabFolder + "/FinalChest.prefab", InteractionMode.AutomatedAction);
+            UtilesConstructor.EnsureFolder(UtilesConstructor.PrefabFolder);
+            PrefabUtility.SaveAsPrefabAssetAndConnect(chest, UtilesConstructor.PrefabFolder + "/CofreFinal.prefab", InteractionMode.AutomatedAction);
         }
 
         AssetDatabase.SaveAssets();
@@ -50,7 +50,7 @@ public static class Ambience
 
     private static ParticleSystem NewSystem(string name, Transform parent, Vector3 position, Material material)
     {
-        GameObject go = BuilderUtils.Group(name, parent);
+        GameObject go = UtilesConstructor.Group(name, parent);
         go.transform.position = position;
 
         ParticleSystem particles = go.AddComponent<ParticleSystem>();

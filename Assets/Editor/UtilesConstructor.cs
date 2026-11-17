@@ -3,9 +3,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public static class BuilderUtils
+public static class UtilesConstructor
 {
-    public const string MaterialFolder = "Assets/Materials";
+    public const string MaterialFolder = "Assets/Materiales";
     public const string PrefabFolder = "Assets/Prefabs";
 
     public static void EnsureFolder(string path)

@@ -1,13 +1,13 @@
 using UnityEditor;
 using UnityEngine;
 
-public static class DebugTools
+public static class HerramientasDepuracion
 {
     [MenuItem("Tools/Umbral/Probar derrota")]
     static void ProbarDerrota()
     {
         if (!Application.isPlaying) return;
-        var stats = Object.FindFirstObjectByType<PlayerStats>();
+        var stats = Object.FindFirstObjectByType<EstadisticasJugador>();
         if (stats != null) stats.TakeDamage(stats.maxHP * 2f);
     }
 
@@ -15,7 +15,7 @@ public static class DebugTools
     static void ProbarGolpe()
     {
         if (!Application.isPlaying) return;
-        var stats = Object.FindFirstObjectByType<PlayerStats>();
+        var stats = Object.FindFirstObjectByType<EstadisticasJugador>();
         if (stats != null) stats.TakeDamage(10f);
     }
 
@@ -39,11 +39,11 @@ public static class DebugTools
 
         var terrain = Object.FindFirstObjectByType<Terrain>();
         if (terrain != null) text.AppendLine("TERRENO pos " + Fmt(terrain.transform.position) + " tam " + Fmt(terrain.terrainData.size));
-        var player = Object.FindFirstObjectByType<PlayerController>();
+        var player = Object.FindFirstObjectByType<ControlJugador>();
         if (player != null) text.AppendLine("JUGADOR " + Fmt(player.transform.position));
         var portal = Object.FindFirstObjectByType<Portal>(FindObjectsInactive.Include);
         if (portal != null) text.AppendLine("PORTAL " + Fmt(portal.transform.position) + " destino " + Fmt(portal.destination));
-        foreach (var chest in Object.FindObjectsByType<ChestBase>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var chest in Object.FindObjectsByType<CofreBase>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             text.AppendLine("COFRE FINAL " + Fmt(chest.transform.position));
         Debug.Log(text.ToString());
     }
@@ -58,13 +58,13 @@ public static class DebugTools
     {
         var terrain = Object.FindFirstObjectByType<Terrain>();
         var lines = new System.Text.StringBuilder("Cofres:\n");
-        foreach (var chest in Object.FindObjectsByType<UpgradeChest>(FindObjectsSortMode.None))
+        foreach (var chest in Object.FindObjectsByType<CofreMejora>(FindObjectsSortMode.None))
         {
             Vector3 p = chest.transform.position;
             float ground = terrain.SampleHeight(p) + terrain.transform.position.y;
             lines.AppendLine(chest.name + " pos " + p.ToString("F1") + " terreno " + ground.ToString("F1") + " diferencia " + (p.y - ground).ToString("F1") + " escala " + chest.transform.lossyScale.ToString("F2"));
         }
-        foreach (var chest in Object.FindObjectsByType<ChestBase>(FindObjectsSortMode.None))
+        foreach (var chest in Object.FindObjectsByType<CofreBase>(FindObjectsSortMode.None))
         {
             Vector3 p = chest.transform.position;
             float ground = terrain.SampleHeight(p) + terrain.transform.position.y;

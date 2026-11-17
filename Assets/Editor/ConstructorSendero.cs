@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public static class TrailBuilder
+public static class ConstructorSendero
 {
     const string RootName = "Sendero";
     const float PathSpacing = 2.2f;
@@ -13,7 +13,7 @@ public static class TrailBuilder
     [MenuItem("Tools/Umbral/12 Salida y senderos")]
     public static void Build()
     {
-        BuilderUtils.Remove(RootName);
+        UtilesConstructor.Remove(RootName);
         var root = new GameObject(RootName).transform;
 
         var terrain = Object.FindFirstObjectByType<Terrain>();
@@ -23,9 +23,9 @@ public static class TrailBuilder
             return;
         }
 
-        Material stone = BuilderUtils.Mat("SenderoPiedra", new Color(0.42f, 0.4f, 0.36f), 0f, 0.1f);
-        Material trim = BuilderUtils.Mat("PuestoBorde", new Color(0.2f, 0.21f, 0.24f), 0f, 0.1f);
-        Material ember = BuilderUtils.Mat("PuestoBrasa", new Color(1f, 0.55f, 0.2f), 0f, 0.3f, 2.5f);
+        Material stone = UtilesConstructor.Mat("SenderoPiedra", new Color(0.42f, 0.4f, 0.36f), 0f, 0.1f);
+        Material trim = UtilesConstructor.Mat("PuestoBorde", new Color(0.2f, 0.21f, 0.24f), 0f, 0.1f);
+        Material ember = UtilesConstructor.Mat("PuestoBrasa", new Color(1f, 0.55f, 0.2f), 0f, 0.3f, 2.5f);
 
         Vector3 gate = OpenSouthGate(root, trim, ember);
         RaisePlatform(terrain);
@@ -155,7 +155,7 @@ public static class TrailBuilder
         {
             if (hit is TerrainCollider) continue;
             if (hit.bounds.size.y < 3f) continue;
-            if (hit.GetComponentInParent<PlayerController>() != null) continue;
+            if (hit.GetComponentInParent<ControlJugador>() != null) continue;
             hit.gameObject.SetActive(false);
             removed.Add(hit.name);
         }
@@ -164,14 +164,14 @@ public static class TrailBuilder
         float floorY = 0f;
         if (Physics.Raycast(new Vector3(0f, 50f, -33f), Vector3.down, out RaycastHit ground, 200f)) floorY = ground.point.y;
 
-        var gate = BuilderUtils.Group("Puerta_Sur", root).transform;
+        var gate = UtilesConstructor.Group("Puerta_Sur", root).transform;
         gate.position = new Vector3(0f, floorY, -32f);
-        BuilderUtils.Block("Jamba_Izq", gate, new Vector3(-8f, 4.5f, 0f), new Vector3(1.6f, 9f, 1.6f), trim);
-        BuilderUtils.Block("Jamba_Der", gate, new Vector3(8f, 4.5f, 0f), new Vector3(1.6f, 9f, 1.6f), trim);
-        BuilderUtils.Block("Dintel", gate, new Vector3(0f, 9.4f, 0f), new Vector3(18f, 1.2f, 1.8f), trim);
-        BuilderUtils.Shape(PrimitiveType.Sphere, "Llama_Izq", gate, new Vector3(-8f, 9.9f, 0f), Vector3.one * 0.9f, glow, false);
-        BuilderUtils.Shape(PrimitiveType.Sphere, "Llama_Der", gate, new Vector3(8f, 9.9f, 0f), Vector3.one * 0.9f, glow, false);
-        BuilderUtils.PointLight("Luz_Puerta", gate, new Vector3(0f, 8f, -2f), new Color(1f, 0.65f, 0.35f), 4f, 20f, LightmapBakeType.Realtime);
+        UtilesConstructor.Block("Jamba_Izq", gate, new Vector3(-8f, 4.5f, 0f), new Vector3(1.6f, 9f, 1.6f), trim);
+        UtilesConstructor.Block("Jamba_Der", gate, new Vector3(8f, 4.5f, 0f), new Vector3(1.6f, 9f, 1.6f), trim);
+        UtilesConstructor.Block("Dintel", gate, new Vector3(0f, 9.4f, 0f), new Vector3(18f, 1.2f, 1.8f), trim);
+        UtilesConstructor.Shape(PrimitiveType.Sphere, "Llama_Izq", gate, new Vector3(-8f, 9.9f, 0f), Vector3.one * 0.9f, glow, false);
+        UtilesConstructor.Shape(PrimitiveType.Sphere, "Llama_Der", gate, new Vector3(8f, 9.9f, 0f), Vector3.one * 0.9f, glow, false);
+        UtilesConstructor.PointLight("Luz_Puerta", gate, new Vector3(0f, 8f, -2f), new Color(1f, 0.65f, 0.35f), 4f, 20f, LightmapBakeType.Realtime);
 
         return new Vector3(0f, floorY, -36f);
     }
@@ -283,7 +283,7 @@ public static class TrailBuilder
 
     static void PlaceSlabs(Transform root, Material stone, List<Vector3> samples)
     {
-        var slabs = BuilderUtils.Group("Losas", root).transform;
+        var slabs = UtilesConstructor.Group("Losas", root).transform;
         for (int i = 0; i < samples.Count; i++)
         {
             Vector3 p = samples[i];
@@ -294,7 +294,7 @@ public static class TrailBuilder
             if (!Physics.Raycast(new Vector3(p.x, 300f, p.z), Vector3.down, out RaycastHit hit, 600f)) continue;
             if (!IsWalkableGround(hit.collider)) continue;
 
-            var slab = BuilderUtils.Shape(PrimitiveType.Cube, "Losa", slabs, hit.point + Vector3.up * 0.03f, new Vector3(2.6f, 0.1f, 2f), stone, false);
+            var slab = UtilesConstructor.Shape(PrimitiveType.Cube, "Losa", slabs, hit.point + Vector3.up * 0.03f, new Vector3(2.6f, 0.1f, 2f), stone, false);
             slab.transform.rotation = Quaternion.LookRotation(forward.normalized) * Quaternion.Euler(0f, (i % 3 - 1) * 4f, 0f);
             slab.transform.position = hit.point + Vector3.up * 0.03f;
             slab.isStatic = true;
@@ -303,7 +303,7 @@ public static class TrailBuilder
 
     static void PlaceLamps(Transform root, Material trim, Material glow, List<Vector3> samples)
     {
-        var lamps = BuilderUtils.Group("Faroles", root).transform;
+        var lamps = UtilesConstructor.Group("Faroles", root).transform;
         for (int i = 6; i < samples.Count; i += 9)
         {
             Vector3 p = samples[i];
@@ -315,11 +315,11 @@ public static class TrailBuilder
             if (!Physics.Raycast(new Vector3(spot.x, 300f, spot.z), Vector3.down, out RaycastHit hit, 600f)) continue;
             if (!IsWalkableGround(hit.collider)) continue;
 
-            var lamp = BuilderUtils.Group("Farol_" + i, lamps).transform;
+            var lamp = UtilesConstructor.Group("Farol_" + i, lamps).transform;
             lamp.position = hit.point;
-            BuilderUtils.Shape(PrimitiveType.Cylinder, "Poste", lamp, new Vector3(0f, 1.1f, 0f), new Vector3(0.25f, 1.1f, 0.25f), trim, false);
-            BuilderUtils.Shape(PrimitiveType.Sphere, "Llama", lamp, new Vector3(0f, 2.4f, 0f), Vector3.one * 0.45f, glow, false);
-            BuilderUtils.PointLight("Luz", lamp, new Vector3(0f, 2.6f, 0f), new Color(1f, 0.62f, 0.32f), 2.5f, 11f, LightmapBakeType.Realtime);
+            UtilesConstructor.Shape(PrimitiveType.Cylinder, "Poste", lamp, new Vector3(0f, 1.1f, 0f), new Vector3(0.25f, 1.1f, 0.25f), trim, false);
+            UtilesConstructor.Shape(PrimitiveType.Sphere, "Llama", lamp, new Vector3(0f, 2.4f, 0f), Vector3.one * 0.45f, glow, false);
+            UtilesConstructor.PointLight("Luz", lamp, new Vector3(0f, 2.6f, 0f), new Color(1f, 0.62f, 0.32f), 2.5f, 11f, LightmapBakeType.Realtime);
         }
     }
 }

@@ -5,14 +5,14 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public static class VerticalSliceSetup
+public static class PreparacionInicial
 {
-    private const string ScenePath = "Assets/Scenes/scene.unity";
-    private const string MaterialFolder = "Assets/Materials";
-    private const string AnimationFolder = "Assets/Animations";
-    private const string ControllerPath = AnimationFolder + "/Boss.controller";
+    private const string ScenePath = "Assets/Escenas/Escena.unity";
+    private const string MaterialFolder = "Assets/Materiales";
+    private const string AnimationFolder = "Assets/Animaciones";
+    private const string ControllerPath = AnimationFolder + "/Jefe.controller";
 
-    [MenuItem("Tools/Vertical Slice/Apply Presentation Setup")]
+    [MenuItem("Tools/Umbral/16 Preparar presentacion")]
     public static void Apply()
     {
         EnsureFolder(MaterialFolder);
@@ -62,13 +62,13 @@ public static class VerticalSliceSetup
 
     private static void ApplyMaterials()
     {
-        Material stone = MakeMaterial("Umbral_Stone", new Color(0.17f, 0.2f, 0.23f), 0.18f, 0.28f);
-        Material floor = MakeMaterial("Umbral_Floor", new Color(0.11f, 0.14f, 0.17f), 0.22f, 0.32f);
-        Material platform = MakeMaterial("Umbral_Pathstone", new Color(0.29f, 0.33f, 0.35f), 0.24f, 0.38f);
-        Material boss = MakeMaterial("Umbral_Boss", new Color(0.32f, 0.075f, 0.065f), 0.36f, 0.42f);
-        Material player = MakeMaterial("Umbral_Hero", new Color(0.16f, 0.35f, 0.39f), 0.28f, 0.48f);
-        Material destructible = MakeMaterial("Umbral_Red_Brick", new Color(0.38f, 0.13f, 0.09f), 0.12f, 0.24f);
-        Material beacon = MakeMaterial("Umbral_Guide_Light", new Color(1f, 0.55f, 0.16f), 0.05f, 0.3f, true);
+        Material stone = MakeMaterial("Umbral_Piedra", new Color(0.17f, 0.2f, 0.23f), 0.18f, 0.28f);
+        Material floor = MakeMaterial("Umbral_Suelo", new Color(0.11f, 0.14f, 0.17f), 0.22f, 0.32f);
+        Material platform = MakeMaterial("Umbral_PiedraCamino", new Color(0.29f, 0.33f, 0.35f), 0.24f, 0.38f);
+        Material boss = MakeMaterial("Umbral_Jefe", new Color(0.32f, 0.075f, 0.065f), 0.36f, 0.42f);
+        Material player = MakeMaterial("Umbral_Heroe", new Color(0.16f, 0.35f, 0.39f), 0.28f, 0.48f);
+        Material destructible = MakeMaterial("Umbral_Ladrillo_Rojo", new Color(0.38f, 0.13f, 0.09f), 0.12f, 0.24f);
+        Material beacon = MakeMaterial("Umbral_Guia_Luz", new Color(1f, 0.55f, 0.16f), 0.05f, 0.3f, true);
 
         foreach (MeshRenderer renderer in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
         {
@@ -88,8 +88,8 @@ public static class VerticalSliceSetup
         CreateArenaLight("VS_ArenaLight_Ember", new Vector3(-11f, 14f, 76f), new Color(1f, 0.28f, 0.12f), 13f, 23f);
         CreateArenaLight("VS_ArenaLight_Azure", new Vector3(11f, 13f, 82f), new Color(0.15f, 0.52f, 0.8f), 10f, 20f);
         CreateArenaLight("VS_ParkourLight", new Vector3(0f, 10f, 42f), new Color(1f, 0.58f, 0.22f), 5f, 16f);
-        Material beacon = AssetDatabase.LoadAssetAtPath<Material>(MaterialFolder + "/Umbral_Guide_Light.mat");
-        CreateRouteBeacon("VS_RouteBeacon_Lobby", new Vector3(2.3f, 0.18f, -4f), beacon);
+        Material beacon = AssetDatabase.LoadAssetAtPath<Material>(MaterialFolder + "/Umbral_Guia_Luz.mat");
+        CreateRouteBeacon("Baliza_Ruta_Vestibulo", new Vector3(2.3f, 0.18f, -4f), beacon);
         CreateRouteBeacon("VS_RouteBeacon_Parkour", new Vector3(-2.4f, 0.95f, 9f), beacon);
         CreateRouteBeacon("VS_RouteBeacon_Exit", new Vector3(2.2f, 6.9f, 52f), beacon);
     }
@@ -148,15 +148,15 @@ public static class VerticalSliceSetup
 
     private static void ApplyBossAnimator()
     {
-        AnimationClip idle = MakeScaleClip(AnimationFolder + "/Boss_Idle.anim", "Boss Idle",
+        AnimationClip idle = MakeScaleClip(AnimationFolder + "/Jefe_Reposo.anim", "Boss Idle",
             new[] { new Keyframe(0f, 1f), new Keyframe(1f, 1.015f), new Keyframe(2f, 1f) },
             new[] { new Keyframe(0f, 1f), new Keyframe(1f, 0.985f), new Keyframe(2f, 1f) },
             new[] { new Keyframe(0f, 1f), new Keyframe(1f, 1.015f), new Keyframe(2f, 1f) }, true);
-        AnimationClip attack = MakeScaleClip(AnimationFolder + "/Boss_Attack.anim", "Boss Attack",
+        AnimationClip attack = MakeScaleClip(AnimationFolder + "/Jefe_Ataque.anim", "Boss Attack",
             new[] { new Keyframe(0f, 1f), new Keyframe(0.12f, 1.12f), new Keyframe(0.38f, 1f) },
             new[] { new Keyframe(0f, 1f), new Keyframe(0.12f, 0.86f), new Keyframe(0.38f, 1f) },
             new[] { new Keyframe(0f, 1f), new Keyframe(0.12f, 1.12f), new Keyframe(0.38f, 1f) }, false);
-        AnimationClip charge = MakeScaleClip(AnimationFolder + "/Boss_Charge.anim", "Boss Charge",
+        AnimationClip charge = MakeScaleClip(AnimationFolder + "/Jefe_Embestida.anim", "Boss Charge",
             new[] { new Keyframe(0f, 1f), new Keyframe(0.12f, 0.88f), new Keyframe(0.4f, 1.1f), new Keyframe(0.7f, 1f) },
             new[] { new Keyframe(0f, 1f), new Keyframe(0.12f, 1.12f), new Keyframe(0.4f, 0.9f), new Keyframe(0.7f, 1f) },
             new[] { new Keyframe(0f, 1f), new Keyframe(0.12f, 0.88f), new Keyframe(0.4f, 1.1f), new Keyframe(0.7f, 1f) }, false);
@@ -164,19 +164,19 @@ public static class VerticalSliceSetup
         AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
         if (controller == null) controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
         controller.parameters = new AnimatorControllerParameter[0];
-        controller.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
-        controller.AddParameter("Charge", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Ataque", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Embestida", AnimatorControllerParameterType.Trigger);
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
         machine.states = new ChildAnimatorState[0];
-        AnimatorState idleState = machine.AddState("Idle");
-        AnimatorState attackState = machine.AddState("Attack");
-        AnimatorState chargeState = machine.AddState("Charge");
+        AnimatorState idleState = machine.AddState("Reposo");
+        AnimatorState attackState = machine.AddState("Ataque");
+        AnimatorState chargeState = machine.AddState("Embestida");
         idleState.motion = idle;
         attackState.motion = attack;
         chargeState.motion = charge;
         machine.defaultState = idleState;
-        AddTriggerTransition(idleState, attackState, "Attack");
-        AddTriggerTransition(idleState, chargeState, "Charge");
+        AddTriggerTransition(idleState, attackState, "Ataque");
+        AddTriggerTransition(idleState, chargeState, "Embestida");
         AddReturnTransition(attackState, idleState);
         AddReturnTransition(chargeState, idleState);
         EditorUtility.SetDirty(controller);

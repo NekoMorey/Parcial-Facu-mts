@@ -4,9 +4,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public static class TerrainMaker
+public static class CreadorTerreno
 {
-    private const string Folder = "Assets/Terrain";
+    private const string Folder = "Assets/Terreno";
     private const int Resolution = 257;
     private const float Size = 420f;
     private const float Height = 70f;
@@ -15,10 +15,10 @@ public static class TerrainMaker
     [MenuItem("Tools/Umbral/3 Terreno")]
     public static void Build()
     {
-        BuilderUtils.Remove("Terreno");
-        BuilderUtils.EnsureFolder(Folder);
+        UtilesConstructor.Remove("Terreno");
+        UtilesConstructor.EnsureFolder(Folder);
 
-        string dataPath = Folder + "/UmbralTerrain.asset";
+        string dataPath = Folder + "/UmbralTerreno.asset";
         AssetDatabase.DeleteAsset(dataPath);
 
         TerrainData data = new TerrainData();
@@ -27,8 +27,8 @@ public static class TerrainMaker
         data.SetHeights(0, 0, MakeHeights());
         AssetDatabase.CreateAsset(data, dataPath);
 
-        TerrainLayer ground = MakeLayer("Ground", MakeGroundTexture(), 14f);
-        TerrainLayer rock = MakeLayer("Rock", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Textures/UmbralStone.png"), 22f);
+        TerrainLayer ground = MakeLayer("Suelo", MakeGroundTexture(), 14f);
+        TerrainLayer rock = MakeLayer("Roca", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Texturas/UmbralPiedra.png"), 22f);
         data.terrainLayers = new[] { ground, rock };
         data.alphamapResolution = 256;
         Paint(data);
@@ -87,7 +87,7 @@ public static class TerrainMaker
 
     private static Texture2D MakeGroundTexture()
     {
-        string path = "Assets/Textures/UmbralGround.png";
+        string path = "Assets/Texturas/UmbralSuelo.png";
         Texture2D texture = new Texture2D(256, 256, TextureFormat.RGB24, false);
 
         for (int y = 0; y < 256; y++)
@@ -141,8 +141,8 @@ public static class TerrainMaker
 
     private static void ScatterBoulders(Terrain terrain)
     {
-        Material stone = BuilderUtils.Mat("Umbral_Stone");
-        Transform parent = BuilderUtils.Group("Rocas", terrain.transform).transform;
+        Material stone = UtilesConstructor.Mat("Umbral_Piedra");
+        Transform parent = UtilesConstructor.Group("Rocas", terrain.transform).transform;
         System.Random random = new System.Random(7);
         int placed = 0;
 
@@ -161,7 +161,7 @@ public static class TerrainMaker
                 Mathf.Lerp(1.5f, 4.5f, (float)random.NextDouble()),
                 Mathf.Lerp(2f, 6f, (float)random.NextDouble()));
 
-            GameObject boulder = BuilderUtils.Shape(PrimitiveType.Sphere, "Roca_" + placed, null, position, scale, stone, true);
+            GameObject boulder = UtilesConstructor.Shape(PrimitiveType.Sphere, "Roca_" + placed, null, position, scale, stone, true);
             boulder.transform.rotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, (float)random.NextDouble() * 20f);
             boulder.transform.SetParent(parent, true);
             placed++;

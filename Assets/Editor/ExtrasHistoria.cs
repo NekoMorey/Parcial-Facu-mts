@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public static class StoryExtras
+public static class ExtrasHistoria
 {
     static readonly string[] Lines =
     {
@@ -16,13 +16,13 @@ public static class StoryExtras
     [MenuItem("Tools/Umbral/10 Tablillas y secuencias")]
     public static void Build()
     {
-        BuilderUtils.EnsureFolder("Assets/Prefabs");
-        BuilderUtils.Remove("Tablillas");
-        BuilderUtils.Remove("Secuencias");
+        UtilesConstructor.EnsureFolder("Assets/Prefabs");
+        UtilesConstructor.Remove("Tablillas");
+        UtilesConstructor.Remove("Secuencias");
 
-        var player = Object.FindFirstObjectByType<PlayerController>();
-        var knight = Object.FindFirstObjectByType<BossAI>();
-        var kraken = Object.FindFirstObjectByType<OctopusBoss>();
+        var player = Object.FindFirstObjectByType<ControlJugador>();
+        var knight = Object.FindFirstObjectByType<IAJefe>();
+        var kraken = Object.FindFirstObjectByType<JefePulpo>();
 
         var prefab = BuildTabletPrefab();
         var tablets = new GameObject("Tablillas").transform;
@@ -45,7 +45,7 @@ public static class StoryExtras
             tablet.name = "Tablilla_" + (i + 1);
             tablet.transform.SetParent(tablets, false);
             tablet.transform.position = ground + Vector3.up * 1.2f;
-            tablet.GetComponent<LoreTablet>().message = Lines[i % Lines.Length];
+            tablet.GetComponent<TablillaHistoria>().message = Lines[i % Lines.Length];
         }
 
         var sequences = new GameObject("Secuencias").transform;
@@ -76,7 +76,7 @@ public static class StoryExtras
         var box = holder.AddComponent<BoxCollider>();
         box.isTrigger = true;
         box.size = size;
-        var shot = holder.AddComponent<CinematicShot>();
+        var shot = holder.AddComponent<TomaCinematica>();
         shot.lookAt = target;
         shot.cameraOffset = offset;
         shot.caption = caption;
@@ -86,7 +86,7 @@ public static class StoryExtras
     static GameObject BuildTabletPrefab()
     {
         var root = new GameObject("Tablilla");
-        var glow = BuilderUtils.Mat("TablillaBrillo", new Color(0.35f, 0.85f, 1f), 0f, 0.7f, 2.2f);
+        var glow = UtilesConstructor.Mat("TablillaBrillo", new Color(0.35f, 0.85f, 1f), 0f, 0.7f, 2.2f);
         var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
         body.name = "Piedra";
         body.transform.SetParent(root.transform, false);
@@ -97,7 +97,7 @@ public static class StoryExtras
         var trigger = root.AddComponent<SphereCollider>();
         trigger.isTrigger = true;
         trigger.radius = 1.6f;
-        root.AddComponent<LoreTablet>();
+        root.AddComponent<TablillaHistoria>();
 
         var saved = PrefabUtility.SaveAsPrefabAsset(root, "Assets/Prefabs/Tablilla.prefab");
         Object.DestroyImmediate(root);

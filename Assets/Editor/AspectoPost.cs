@@ -4,15 +4,15 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public static class PostLook
+public static class AspectoPost
 {
     [MenuItem("Tools/Umbral/9 Post-procesado y pausa")]
     public static void Build()
     {
-        BuilderUtils.EnsureFolder("Assets/Settings");
+        UtilesConstructor.EnsureFolder("Assets/Configuracion");
 
-        var ruinsProfile = MakeProfile("Assets/Settings/PerfilRuinas.asset", new Color(1f, 0.93f, 0.85f), 0.9f, 0.3f, 0.7f, 12f);
-        var abyssProfile = MakeProfile("Assets/Settings/PerfilAbismo.asset", new Color(0.75f, 0.9f, 1f), 1.3f, 0.35f, 0.6f, -8f);
+        var ruinsProfile = MakeProfile("Assets/Configuracion/PerfilRuinas.asset", new Color(1f, 0.93f, 0.85f), 0.9f, 0.3f, 0.7f, 12f);
+        var abyssProfile = MakeProfile("Assets/Configuracion/PerfilAbismo.asset", new Color(0.75f, 0.9f, 1f), 1.3f, 0.35f, 0.6f, -8f);
 
         var oldRoot = GameObject.Find("PostProcesado");
         if (oldRoot != null) Object.DestroyImmediate(oldRoot);
@@ -41,11 +41,11 @@ public static class PostLook
             data.renderPostProcessing = true;
         }
 
-        var pause = Object.FindFirstObjectByType<PauseMenu>();
+        var pause = Object.FindFirstObjectByType<MenuPausa>();
         if (pause == null)
         {
             var holder = new GameObject("MenuPausa");
-            holder.AddComponent<PauseMenu>();
+            holder.AddComponent<MenuPausa>();
         }
 
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
@@ -58,7 +58,7 @@ public static class PostLook
             sun.color = new Color(1f, 0.92f, 0.82f);
         }
 
-        var stats = Object.FindFirstObjectByType<PlayerStats>();
+        var stats = Object.FindFirstObjectByType<EstadisticasJugador>();
         if (stats != null && stats.gameOverPanel != null) stats.gameOverPanel.SetActive(false);
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());

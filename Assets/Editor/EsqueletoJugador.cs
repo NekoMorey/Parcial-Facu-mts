@@ -4,14 +4,14 @@ using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public static class PlayerRig
+public static class EsqueletoJugador
 {
-    private const string Folder = "Assets/Animations/Player";
+    private const string Folder = "Assets/Animaciones/Jugador";
     private const string Body = "Cuerpo";
-    private const string ArmL = "Cuerpo/Arm_L";
-    private const string ArmR = "Cuerpo/Arm_R";
-    private const string LegL = "Cuerpo/Leg_L";
-    private const string LegR = "Cuerpo/Leg_R";
+    private const string ArmL = "Cuerpo/Brazo_Izq";
+    private const string ArmR = "Cuerpo/Brazo_Der";
+    private const string LegL = "Cuerpo/Pierna_Izq";
+    private const string LegR = "Cuerpo/Pierna_Der";
 
     [MenuItem("Tools/Umbral/2 Personaje")]
     public static void Build()
@@ -29,57 +29,57 @@ public static class PlayerRig
         MeshRenderer capsule = player.GetComponent<MeshRenderer>();
         if (capsule != null) capsule.enabled = false;
 
-        Material cloth = BuilderUtils.Mat("Umbral_Hero");
-        Material skin = BuilderUtils.Mat("Umbral_Hero_Skin", new Color(0.78f, 0.62f, 0.5f), 0f, 0.3f);
-        Material armor = BuilderUtils.Mat("Umbral_Hero_Armor", new Color(0.55f, 0.42f, 0.2f), 0.7f, 0.5f);
+        Material cloth = UtilesConstructor.Mat("Umbral_Heroe");
+        Material skin = UtilesConstructor.Mat("Umbral_Heroe_Piel", new Color(0.78f, 0.62f, 0.5f), 0f, 0.3f);
+        Material armor = UtilesConstructor.Mat("Umbral_Heroe_Armadura", new Color(0.55f, 0.42f, 0.2f), 0.7f, 0.5f);
 
-        GameObject model = BuilderUtils.Group("Modelo", player.transform);
-        Transform body = BuilderUtils.Group("Cuerpo", model.transform).transform;
+        GameObject model = UtilesConstructor.Group("Modelo", player.transform);
+        Transform body = UtilesConstructor.Group("Cuerpo", model.transform).transform;
 
-        BuilderUtils.Shape(PrimitiveType.Cube, "Torso", body, new Vector3(0f, 0.2f, 0f), new Vector3(0.62f, 0.75f, 0.36f), cloth, false);
-        BuilderUtils.Shape(PrimitiveType.Cube, "Belt", body, new Vector3(0f, -0.14f, 0f), new Vector3(0.66f, 0.12f, 0.4f), armor, false);
-        BuilderUtils.Shape(PrimitiveType.Sphere, "Head", body, new Vector3(0f, 0.82f, 0f), Vector3.one * 0.44f, skin, false);
-        BuilderUtils.Shape(PrimitiveType.Cube, "Hood", body, new Vector3(0f, 0.9f, -0.06f), new Vector3(0.48f, 0.3f, 0.4f), cloth, false);
+        UtilesConstructor.Shape(PrimitiveType.Cube, "Torso", body, new Vector3(0f, 0.2f, 0f), new Vector3(0.62f, 0.75f, 0.36f), cloth, false);
+        UtilesConstructor.Shape(PrimitiveType.Cube, "Cinturon", body, new Vector3(0f, -0.14f, 0f), new Vector3(0.66f, 0.12f, 0.4f), armor, false);
+        UtilesConstructor.Shape(PrimitiveType.Sphere, "Cabeza", body, new Vector3(0f, 0.82f, 0f), Vector3.one * 0.44f, skin, false);
+        UtilesConstructor.Shape(PrimitiveType.Cube, "Capucha", body, new Vector3(0f, 0.9f, -0.06f), new Vector3(0.48f, 0.3f, 0.4f), cloth, false);
 
-        Limb("Arm_L", body, new Vector3(-0.41f, 0.5f, 0f), new Vector3(0.17f, 0.62f, 0.17f), skin, armor);
-        Limb("Arm_R", body, new Vector3(0.41f, 0.5f, 0f), new Vector3(0.17f, 0.62f, 0.17f), skin, armor);
-        Limb("Leg_L", body, new Vector3(-0.17f, -0.2f, 0f), new Vector3(0.22f, 0.8f, 0.22f), cloth, armor);
-        Limb("Leg_R", body, new Vector3(0.17f, -0.2f, 0f), new Vector3(0.22f, 0.8f, 0.22f), cloth, armor);
+        Limb("Brazo_Izq", body, new Vector3(-0.41f, 0.5f, 0f), new Vector3(0.17f, 0.62f, 0.17f), skin, armor);
+        Limb("Brazo_Der", body, new Vector3(0.41f, 0.5f, 0f), new Vector3(0.17f, 0.62f, 0.17f), skin, armor);
+        Limb("Pierna_Izq", body, new Vector3(-0.17f, -0.2f, 0f), new Vector3(0.22f, 0.8f, 0.22f), cloth, armor);
+        Limb("Pierna_Der", body, new Vector3(0.17f, -0.2f, 0f), new Vector3(0.22f, 0.8f, 0.22f), cloth, armor);
 
         Animator animator = model.AddComponent<Animator>();
         animator.runtimeAnimatorController = BuildController();
         animator.applyRootMotion = false;
 
-        if (player.GetComponent<PlayerAnimation>() == null)
-            player.AddComponent<PlayerAnimation>();
+        if (player.GetComponent<AnimacionJugador>() == null)
+            player.AddComponent<AnimacionJugador>();
 
         AssetDatabase.SaveAssets();
         EditorSceneManager.MarkSceneDirty(player.scene);
         Debug.Log("Personaje: modelo y animaciones listos.");
-        Weapons.Build();
+        Armas.Build();
     }
 
     private static void Limb(string name, Transform body, Vector3 pivot, Vector3 size, Material main, Material tip)
     {
-        Transform joint = BuilderUtils.Group(name, body).transform;
+        Transform joint = UtilesConstructor.Group(name, body).transform;
         joint.localPosition = pivot;
 
-        BuilderUtils.Shape(PrimitiveType.Cube, name + "_Mesh", joint, new Vector3(0f, -size.y * 0.5f, 0f), size, main, false);
-        BuilderUtils.Shape(PrimitiveType.Cube, name + "_Tip", joint, new Vector3(0f, -size.y + 0.07f, 0f), new Vector3(size.x * 1.15f, 0.16f, size.z * 1.15f), tip, false);
+        UtilesConstructor.Shape(PrimitiveType.Cube, name + "_Malla", joint, new Vector3(0f, -size.y * 0.5f, 0f), size, main, false);
+        UtilesConstructor.Shape(PrimitiveType.Cube, name + "_Punta", joint, new Vector3(0f, -size.y + 0.07f, 0f), new Vector3(size.x * 1.15f, 0.16f, size.z * 1.15f), tip, false);
     }
 
     private static AnimatorController BuildController()
     {
-        BuilderUtils.EnsureFolder(Folder);
+        UtilesConstructor.EnsureFolder(Folder);
 
-        AnimationClip idle = MakeClip("Player_Idle", true, new Dictionary<string, Keyframe[]>
+        AnimationClip idle = MakeClip("Jugador_Reposo", true, new Dictionary<string, Keyframe[]>
         {
             { ArmL, Keys(0f, 0f, 1f, 5f, 2f, 0f) },
             { ArmR, Keys(0f, 0f, 1f, -5f, 2f, 0f) },
             { Body, Keys(0f, 0f, 1f, 2f, 2f, 0f) }
         });
 
-        AnimationClip run = MakeClip("Player_Run", true, new Dictionary<string, Keyframe[]>
+        AnimationClip run = MakeClip("Jugador_Correr", true, new Dictionary<string, Keyframe[]>
         {
             { LegL, Keys(0f, 40f, 0.22f, -40f, 0.44f, 40f) },
             { LegR, Keys(0f, -40f, 0.22f, 40f, 0.44f, -40f) },
@@ -88,7 +88,7 @@ public static class PlayerRig
             { Body, Keys(0f, 10f, 0.44f, 10f) }
         });
 
-        AnimationClip jump = MakeClip("Player_Jump", true, new Dictionary<string, Keyframe[]>
+        AnimationClip jump = MakeClip("Jugador_Saltar", true, new Dictionary<string, Keyframe[]>
         {
             { LegL, Keys(0f, -25f, 0.5f, -25f) },
             { LegR, Keys(0f, 30f, 0.5f, 30f) },
@@ -96,7 +96,7 @@ public static class PlayerRig
             { ArmR, Keys(0f, -150f, 0.5f, -150f) }
         });
 
-        AnimationClip roll = MakeClip("Player_Roll", false, new Dictionary<string, Keyframe[]>
+        AnimationClip roll = MakeClip("Jugador_Rodar", false, new Dictionary<string, Keyframe[]>
         {
             { Body, Keys(0f, 0f, 0.35f, 360f) },
             { LegL, Keys(0f, -80f, 0.35f, -80f) },
@@ -105,35 +105,35 @@ public static class PlayerRig
             { ArmR, Keys(0f, -60f, 0.35f, -60f) }
         });
 
-        AnimationClip toss = MakeClip("Player_Throw", false, new Dictionary<string, Keyframe[]>
+        AnimationClip toss = MakeClip("Jugador_Disparo", false, new Dictionary<string, Keyframe[]>
         {
             { ArmL, Keys(0f, 0f, 0.07f, -92f, 0.14f, -104f, 0.22f, -92f, 0.36f, 0f) },
             { Body, Keys(0f, 0f, 0.07f, 6f, 0.36f, 0f) }
         });
 
-        AnimationClip slash = MakeClip("Player_Slash", false, new Dictionary<string, Keyframe[]>
+        AnimationClip slash = MakeClip("Jugador_Tajo", false, new Dictionary<string, Keyframe[]>
         {
             { ArmR, Keys(0f, 0f, 0.1f, -140f, 0.2f, -20f, 0.32f, 15f, 0.46f, 0f) },
             { Body, Keys(0f, 0f, 0.1f, -14f, 0.2f, 16f, 0.46f, 0f) }
         });
 
-        string path = Folder + "/Player.controller";
+        string path = Folder + "/Jugador.controller";
         AssetDatabase.DeleteAsset(path);
         AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(path);
 
-        controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
-        controller.AddParameter("Grounded", AnimatorControllerParameterType.Bool);
-        controller.AddParameter("Dodge", AnimatorControllerParameterType.Trigger);
-        controller.AddParameter("Throw", AnimatorControllerParameterType.Trigger);
-        controller.AddParameter("Slash", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Velocidad", AnimatorControllerParameterType.Float);
+        controller.AddParameter("EnSuelo", AnimatorControllerParameterType.Bool);
+        controller.AddParameter("Esquive", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Disparo", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Tajo", AnimatorControllerParameterType.Trigger);
 
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
-        AnimatorState idleState = machine.AddState("Idle");
-        AnimatorState runState = machine.AddState("Run");
-        AnimatorState jumpState = machine.AddState("Jump");
-        AnimatorState rollState = machine.AddState("Roll");
-        AnimatorState throwState = machine.AddState("Throw");
-        AnimatorState slashState = machine.AddState("Slash");
+        AnimatorState idleState = machine.AddState("Reposo");
+        AnimatorState runState = machine.AddState("Correr");
+        AnimatorState jumpState = machine.AddState("Saltar");
+        AnimatorState rollState = machine.AddState("Rodar");
+        AnimatorState throwState = machine.AddState("Disparo");
+        AnimatorState slashState = machine.AddState("Tajo");
 
         idleState.motion = idle;
         runState.motion = run;
@@ -143,22 +143,22 @@ public static class PlayerRig
         slashState.motion = slash;
         machine.defaultState = idleState;
 
-        Link(idleState, runState).AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
-        Link(runState, idleState).AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
-        Link(idleState, jumpState).AddCondition(AnimatorConditionMode.IfNot, 0f, "Grounded");
-        Link(runState, jumpState).AddCondition(AnimatorConditionMode.IfNot, 0f, "Grounded");
-        Link(jumpState, idleState).AddCondition(AnimatorConditionMode.If, 0f, "Grounded");
+        Link(idleState, runState).AddCondition(AnimatorConditionMode.Greater, 0.1f, "Velocidad");
+        Link(runState, idleState).AddCondition(AnimatorConditionMode.Less, 0.1f, "Velocidad");
+        Link(idleState, jumpState).AddCondition(AnimatorConditionMode.IfNot, 0f, "EnSuelo");
+        Link(runState, jumpState).AddCondition(AnimatorConditionMode.IfNot, 0f, "EnSuelo");
+        Link(jumpState, idleState).AddCondition(AnimatorConditionMode.If, 0f, "EnSuelo");
 
-        Link(idleState, rollState).AddCondition(AnimatorConditionMode.If, 0f, "Dodge");
-        Link(runState, rollState).AddCondition(AnimatorConditionMode.If, 0f, "Dodge");
-        Link(jumpState, rollState).AddCondition(AnimatorConditionMode.If, 0f, "Dodge");
-        Link(idleState, throwState).AddCondition(AnimatorConditionMode.If, 0f, "Throw");
-        Link(runState, throwState).AddCondition(AnimatorConditionMode.If, 0f, "Throw");
-        Link(jumpState, throwState).AddCondition(AnimatorConditionMode.If, 0f, "Throw");
+        Link(idleState, rollState).AddCondition(AnimatorConditionMode.If, 0f, "Esquive");
+        Link(runState, rollState).AddCondition(AnimatorConditionMode.If, 0f, "Esquive");
+        Link(jumpState, rollState).AddCondition(AnimatorConditionMode.If, 0f, "Esquive");
+        Link(idleState, throwState).AddCondition(AnimatorConditionMode.If, 0f, "Disparo");
+        Link(runState, throwState).AddCondition(AnimatorConditionMode.If, 0f, "Disparo");
+        Link(jumpState, throwState).AddCondition(AnimatorConditionMode.If, 0f, "Disparo");
 
-        Link(idleState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Slash");
-        Link(runState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Slash");
-        Link(jumpState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Slash");
+        Link(idleState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Tajo");
+        Link(runState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Tajo");
+        Link(jumpState, slashState).AddCondition(AnimatorConditionMode.If, 0f, "Tajo");
 
         Return(slashState, idleState);
         Return(rollState, idleState);
@@ -199,7 +199,7 @@ public static class PlayerRig
 
     public static AnimationClip MakeClip(string folder, string name, bool loop, Dictionary<string, Keyframe[]> swings)
     {
-        BuilderUtils.EnsureFolder(folder);
+        UtilesConstructor.EnsureFolder(folder);
         string path = folder + "/" + name + ".anim";
         AssetDatabase.DeleteAsset(path);
 

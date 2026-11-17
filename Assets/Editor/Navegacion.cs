@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public static class Navigation
+public static class Navegacion
 {
     [MenuItem("Tools/Umbral/14 Rehacer navegacion")]
     public static void Build()
