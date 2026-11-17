@@ -19,6 +19,16 @@ public class HUDManager : MonoBehaviour
     private TextMeshProUGUI interactionText;
     private GameObject victoryPanel;
     private TMP_FontAsset hudFont;
+    private BossStats[] bosses;
+
+    private static string notice;
+    private static float noticeUntil;
+
+    public static void Notify(string text, float seconds = 2.5f)
+    {
+        notice = text;
+        noticeUntil = Time.unscaledTime + seconds;
+    }
 
     void Start()
     {
@@ -29,6 +39,8 @@ public class HUDManager : MonoBehaviour
             bossNameText = bossHUDPanel.GetComponentInChildren<TextMeshProUGUI>(true);
         if (bossNameText != null) hudFont = bossNameText.font;
         if (bossHUDPanel != null) bossHUDPanel.SetActive(false);
+        bosses = FindObjectsByType<BossStats>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
         CreateInteractionPrompt();
     }
 
@@ -48,8 +60,14 @@ public class HUDManager : MonoBehaviour
             }
         }
 
+        foreach (BossStats boss in bosses)
+        {
+            if (boss != null && boss.engaged && boss.gameObject.activeInHierarchy)
+                bossStats = boss;
+        }
+
         bool isBossActive = bossStats != null && bossStats.gameObject.activeInHierarchy;
-        bool isDetected = bossAI != null && bossAI.isPlayerDetected;
+        bool isDetected = bossStats != null && bossStats.engaged;
         if (isBossActive && isDetected)
         {
             if (bossHUDPanel != null && !bossHUDPanel.activeSelf) bossHUDPanel.SetActive(true);
@@ -116,6 +134,9 @@ public class HUDManager : MonoBehaviour
                 prompt = chest.isBossDefeated ? "E  ·  Abrir cofre" : "Derrota al Guardián para abrir el cofre";
             }
         }
+
+        if (string.IsNullOrEmpty(prompt) && Time.unscaledTime < noticeUntil)
+            prompt = notice;
 
         GameObject background = interactionText.transform.parent.gameObject;
         background.SetActive(!string.IsNullOrEmpty(prompt));

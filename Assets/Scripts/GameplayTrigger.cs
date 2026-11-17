@@ -15,9 +15,9 @@ public sealed class GameplayTrigger : MonoBehaviour
         if (stats == null) stats = other.GetComponentInParent<PlayerStats>();
         if (stats == null) return;
 
-        fired = true;
         if (action == TriggerAction.Checkpoint)
         {
+            fired = true;
             stats.SetCheckpoint(transform.position + Vector3.up * 1.5f);
             GameFeedback.Play(GameFeedback.Cue.Reward);
             VoiceOver.PlayRouteLine();

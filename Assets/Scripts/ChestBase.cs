@@ -10,6 +10,9 @@ public abstract class ChestBase : MonoBehaviour, IInteractable
     public GameObject levelUpVFX;
     public float scaleMultiplier = 1.25f;
 
+    [Header("Siguiente nivel")]
+    public GameObject portal;
+
     private bool isOpen;
 
     protected virtual void Update()
@@ -52,6 +55,13 @@ public abstract class ChestBase : MonoBehaviour, IInteractable
         }
 
         Debug.Log("Cofre abierto con exito! Nivel del personaje aumentado.");
+        if (portal != null)
+        {
+            portal.SetActive(true);
+            HUDManager.Notify("Se abrió un portal hacia el Abismo", 4f);
+            return;
+        }
+
         HUDManager hud = FindFirstObjectByType<HUDManager>();
         if (hud != null) hud.ShowVictory();
     }

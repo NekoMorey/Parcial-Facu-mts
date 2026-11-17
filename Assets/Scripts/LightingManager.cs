@@ -17,6 +17,9 @@ public class LightingManager : MonoBehaviour
     public float parkourIntensity = 0.6f;
     public float arenaIntensity   = 1.1f;
 
+    [Header("Luz global")]
+    public bool driveGlobalLighting = false;
+
     [Header("Transición")]
     public float transitionSpeed = 1.2f;
 
@@ -35,8 +38,11 @@ public class LightingManager : MonoBehaviour
 
         targetAmbient   = lobbyAmbient;
         targetIntensity = lobbyIntensity;
-        RenderSettings.ambientMode  = AmbientMode.Flat;
-        RenderSettings.ambientLight = lobbyAmbient;
+        if (driveGlobalLighting)
+        {
+            RenderSettings.ambientMode  = AmbientMode.Flat;
+            RenderSettings.ambientLight = lobbyAmbient;
+        }
     }
 
     void Update()
@@ -46,6 +52,8 @@ public class LightingManager : MonoBehaviour
             player = GameObject.FindWithTag("Player")?.transform;
             return;
         }
+
+        if (!driveGlobalLighting) return;
 
         UpdateZone(player.position.z);
         ApplyTransition();

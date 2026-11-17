@@ -26,12 +26,24 @@ public class BossAI : MonoBehaviour
 
     public bool isPlayerDetected = false;
 
+    [Header("Fase 2")]
+    public float enragedThreshold = 0.5f;
+    public float slamRadius = 6.5f;
+    public float slamDamage = 20f;
+    public float slamWindup = 0.9f;
+    private bool enraged = false;
+    private BossStats stats;
+    private GameObject slamMarker;
+    private CapsuleCollider bodyCollider;
+
     private bool AgentReady => agent != null && agent.isOnNavMesh;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        stats = GetComponent<BossStats>();
+        bodyCollider = GetComponent<CapsuleCollider>();
 
         if (agent != null) originalSpeed = agent.speed;
 
@@ -46,6 +58,13 @@ public class BossAI : MonoBehaviour
 
     void Update()
     {
+        KeepGrounded();
+
+        if (animator != null && agent != null)
+            animator.SetFloat("Speed", agent.velocity.magnitude);
+
+        if (stats != null) stats.engaged = isPlayerDetected;
+
         if (player == null || isAttacking) return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
@@ -60,13 +79,21 @@ public class BossAI : MonoBehaviour
             return;
         }
 
+        if (!enraged && stats != null && stats.currentHP <= stats.maxHP * enragedThreshold)
+            EnterPhaseTwo();
+
         if (distanceToPlayer <= attackRange)
         {
             if (AgentReady) agent.isStopped = true;
             LookAtPlayer();
 
             if (attackCooldown <= 0f)
-                ExecuteMeleeAttack();
+            {
+                if (enraged && Random.value < 0.5f)
+                    StartCoroutine(SlamRoutine());
+                else
+                    ExecuteMeleeAttack();
+            }
         }
         else if (distanceToPlayer >= chargeRange && attackCooldown <= 0f)
         {
@@ -81,6 +108,90 @@ public class BossAI : MonoBehaviour
                 agent.SetDestination(player.position);
             }
         }
+    }
+
+    void KeepGrounded()
+    {
+        if (bodyCollider == null) return;
+        if (!Physics.Raycast(transform.position, Vector3.down, out RaycastHit floor, 20f, ~0, QueryTriggerInteraction.Ignore)) return;
+
+        float halfHeight = bodyCollider.height * 0.5f * transform.lossyScale.y;
+        float gap = transform.position.y - halfHeight - floor.point.y;
+        if (Mathf.Abs(gap) < 0.03f) return;
+
+        if (AgentReady)
+            agent.baseOffset -= gap * 0.5f / transform.lossyScale.y;
+        else
+            transform.position -= Vector3.up * gap;
+    }
+
+    void EnterPhaseTwo()
+    {
+        enraged = true;
+        originalSpeed *= 1.35f;
+        chargeSpeed *= 1.2f;
+        timeBetweenAttacks *= 0.65f;
+
+        if (AgentReady) agent.speed = originalSpeed;
+
+        Color fury = new Color(0.75f, 0.1f, 0.05f);
+        foreach (Renderer piece in GetComponentsInChildren<Renderer>())
+        {
+            if (piece is ParticleSystemRenderer) continue;
+            piece.material.color = Color.Lerp(piece.material.color, fury, 0.45f);
+        }
+
+        GameFeedback.Play(GameFeedback.Cue.Charge);
+        GameFeedback.Burst(transform.position + Vector3.up, new Color(1f, 0.3f, 0.1f), 60, 0.35f);
+        HUDManager.Notify("El Guardián entra en furia", 3f);
+    }
+
+    IEnumerator SlamRoutine()
+    {
+        isAttacking = true;
+        attackCooldown = timeBetweenAttacks + 0.8f;
+
+        if (AgentReady) agent.isStopped = true;
+        if (animator != null) animator.SetTrigger("Slam");
+        GameFeedback.Play(GameFeedback.Cue.Charge);
+
+        Vector3 center = transform.position;
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit ground, 12f, ~0, QueryTriggerInteraction.Ignore))
+            center = ground.point;
+
+        slamMarker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        Destroy(slamMarker.GetComponent<Collider>());
+        slamMarker.transform.position = center + Vector3.up * 0.03f;
+        slamMarker.GetComponent<Renderer>().material.color = new Color(0.85f, 0.12f, 0.08f);
+
+        float timer = 0f;
+        while (timer < slamWindup)
+        {
+            timer += Time.deltaTime;
+            float size = Mathf.Lerp(0.5f, slamRadius * 2f, timer / slamWindup);
+            slamMarker.transform.localScale = new Vector3(size, 0.02f, size);
+            yield return null;
+        }
+
+        Destroy(slamMarker);
+        GameFeedback.Play(GameFeedback.Cue.Impact);
+        GameFeedback.Burst(center + Vector3.up * 0.5f, new Color(1f, 0.35f, 0.15f), 70, 0.3f);
+
+        Vector3 toPlayer = player.position - center;
+        toPlayer.y = 0f;
+        if (toPlayer.magnitude <= slamRadius)
+        {
+            PlayerStats playerStats = player.GetComponent<PlayerStats>();
+            if (playerStats != null) playerStats.TakeDamage(slamDamage);
+        }
+
+        yield return new WaitForSeconds(0.4f);
+        isAttacking = false;
+    }
+
+    void OnDisable()
+    {
+        if (slamMarker != null) Destroy(slamMarker);
     }
 
     void LookAtPlayer()

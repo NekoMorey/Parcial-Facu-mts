@@ -1,11 +1,13 @@
 using UnityEngine;
 
-public class BossStats : MonoBehaviour
+public class BossStats : MonoBehaviour, IDamageable
 {
     [Header("Stats del Boss")]
     public string bossName = "Guardian del Umbral";
     public float maxHP = 500f;
     public float currentHP;
+    public bool isFinalBoss = false;
+    [HideInInspector] public bool engaged = false;
 
     private bool isDead = false;
 
@@ -41,6 +43,12 @@ public class BossStats : MonoBehaviour
         foreach (ChestBase chest in chests)
         {
             chest.isBossDefeated = true;
+        }
+
+        if (isFinalBoss)
+        {
+            HUDManager hud = FindFirstObjectByType<HUDManager>();
+            if (hud != null) hud.ShowVictory();
         }
 
         gameObject.SetActive(false);
