@@ -178,7 +178,7 @@ public class PlayerController : MonoBehaviour
         {
             transform.position = position;
         }
-        if (rb != null) rb.linearVelocity = Vector3.zero;
+        if (rb != null && !rb.isKinematic) rb.linearVelocity = Vector3.zero;
         verticalVelocity = 0f;
         isDodging = false;
         canDodge = true;

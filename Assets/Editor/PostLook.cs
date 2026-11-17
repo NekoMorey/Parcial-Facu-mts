@@ -11,8 +11,8 @@ public static class PostLook
     {
         BuilderUtils.EnsureFolder("Assets/Settings");
 
-        var ruinsProfile = MakeProfile("Assets/Settings/PerfilRuinas.asset", new Color(1f, 0.93f, 0.85f), 0.9f, 0.32f, -0.2f, 12f);
-        var abyssProfile = MakeProfile("Assets/Settings/PerfilAbismo.asset", new Color(0.75f, 0.9f, 1f), 1.3f, 0.4f, 0.1f, -8f);
+        var ruinsProfile = MakeProfile("Assets/Settings/PerfilRuinas.asset", new Color(1f, 0.93f, 0.85f), 0.9f, 0.3f, 0.7f, 12f);
+        var abyssProfile = MakeProfile("Assets/Settings/PerfilAbismo.asset", new Color(0.75f, 0.9f, 1f), 1.3f, 0.35f, 0.6f, -8f);
 
         var oldRoot = GameObject.Find("PostProcesado");
         if (oldRoot != null) Object.DestroyImmediate(oldRoot);
@@ -47,6 +47,9 @@ public static class PostLook
             var holder = new GameObject("MenuPausa");
             holder.AddComponent<PauseMenu>();
         }
+
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.22f, 0.25f, 0.34f);
 
         var stats = Object.FindFirstObjectByType<PlayerStats>();
         if (stats != null && stats.gameOverPanel != null) stats.gameOverPanel.SetActive(false);
@@ -85,6 +88,7 @@ public static class PostLook
         var tone = profile.Add<Tonemapping>(true);
         tone.mode.Override(TonemappingMode.ACES);
 
+        foreach (var component in profile.components) AssetDatabase.AddObjectToAsset(component, profile);
         EditorUtility.SetDirty(profile);
         AssetDatabase.SaveAssets();
         return profile;

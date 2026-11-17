@@ -60,12 +60,19 @@ public class PlayerStats : MonoBehaviour
 
         currentHP -= damage;
         GameFeedback.Play(GameFeedback.Cue.Hit);
+        DamageFeedback.Hit(damage);
         currentHP = Mathf.Clamp(currentHP, 0f, maxHP);
 
         if (currentHP <= 0f)
         {
             Die();
         }
+    }
+
+    [ContextMenu("Probar derrota")]
+    void ProbarDerrota()
+    {
+        TakeDamage(maxHP * 2f);
     }
 
     public void SetCheckpoint(Vector3 position)
@@ -106,11 +113,7 @@ public class PlayerStats : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        if (gameOverPanel != null)
-        {
-            gameOverPanel.SetActive(true);
-        }
-
+        DefeatScreen.Show(this);
         Time.timeScale = 0f;
     }
 
