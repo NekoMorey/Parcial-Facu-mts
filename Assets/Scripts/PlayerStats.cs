@@ -10,6 +10,9 @@ public class PlayerStats : MonoBehaviour
     [Header("Stamina")]
     public float maxStamina = 100f;
     public float currentStamina;
+    public float staminaRegenPerSecond = 18f;
+    public float staminaRegenDelay = 0.8f;
+    private float staminaRegenTimer;
 
     [Header("Estad�sticas de Ataque y Nivel")]
     public int playerLevel = 1;
@@ -30,6 +33,18 @@ public class PlayerStats : MonoBehaviour
         {
             gameOverPanel.SetActive(false);
         }
+    }
+
+    void Update()
+    {
+        if (staminaRegenTimer > 0f)
+        {
+            staminaRegenTimer -= Time.deltaTime;
+            return;
+        }
+
+        if (currentStamina < maxStamina)
+            currentStamina = Mathf.Min(maxStamina, currentStamina + staminaRegenPerSecond * Time.deltaTime);
     }
 
     public void TakeDamage(float damage)
@@ -68,6 +83,7 @@ public class PlayerStats : MonoBehaviour
         if (currentStamina >= amount)
         {
             currentStamina -= amount;
+            staminaRegenTimer = staminaRegenDelay;
             return true;
         }
         return false;

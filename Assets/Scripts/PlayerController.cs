@@ -96,10 +96,12 @@ public class PlayerController : MonoBehaviour
                 LockCursor();
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        bool gameEnded = !isPaused && Time.timeScale == 0f;
+
+        if (Input.GetKeyDown(KeyCode.Escape) && !gameEnded)
             TogglePause();
 
-        if (isPaused || isDodging) return;
+        if (isPaused || isDodging || gameEnded) return;
 
         CheckLockOnDistance();
         HandleGravityAndJump();
