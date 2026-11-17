@@ -65,6 +65,12 @@ public class BossAI : MonoBehaviour
 
         if (stats != null) stats.engaged = isPlayerDetected;
 
+        if (CinematicShot.Running)
+        {
+            if (AgentReady) agent.ResetPath();
+            return;
+        }
+
         if (player == null || isAttacking) return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);

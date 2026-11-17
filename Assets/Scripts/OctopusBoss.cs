@@ -46,6 +46,8 @@ public class OctopusBoss : MonoBehaviour
 
     void Update()
     {
+        if (CinematicShot.Running) return;
+
         if (player == null)
         {
             GameObject found = GameObject.FindWithTag("Player");
