@@ -28,6 +28,7 @@ public static class TrailBuilder
         Material ember = BuilderUtils.Mat("PuestoBrasa", new Color(1f, 0.55f, 0.2f), 0f, 0.3f, 2.5f);
 
         Vector3 gate = OpenSouthGate(root, trim, ember);
+        RaisePlatform(terrain);
 
         var stops = new List<Vector3>();
         var exploration = GameObject.Find("Exploracion");
@@ -57,12 +58,93 @@ public static class TrailBuilder
         SmoothHeights(terrain, samples);
         CarveTerrain(terrain, samples);
         Physics.SyncTransforms();
+        Physics.SyncTransforms();
+        SettleOutposts(terrain);
         PlaceSlabs(root, stone, samples);
         PlaceLamps(root, trim, ember, samples);
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveOpenScenes();
         Debug.Log("Senderos listos: " + samples.Count + " tramos desde la salida hasta " + stops.Count + " puestos.");
+    }
+
+    static void RaisePlatform(Terrain terrain)
+    {
+        var floor = GameObject.Find("Suelo");
+        if (floor == null) return;
+
+        Bounds area = floor.GetComponent<Renderer>().bounds;
+        foreach (var name in new[] { "Mapa", "Pared", "Pared (1)" })
+        {
+            var item = GameObject.Find(name);
+            if (item == null) continue;
+            foreach (var r in item.GetComponentsInChildren<Renderer>()) area.Encapsulate(r.bounds);
+        }
+
+        float margin = 32f;
+        float level = floor.GetComponent<Renderer>().bounds.max.y - 0.5f;
+        var data = terrain.terrainData;
+        int resolution = data.heightmapResolution;
+        Vector3 origin = terrain.transform.position;
+        float cellX = data.size.x / (resolution - 1);
+        float cellZ = data.size.z / (resolution - 1);
+        var heights = data.GetHeights(0, 0, resolution, resolution);
+        float goal = Mathf.Clamp01((level - origin.y) / data.size.y);
+
+        for (int z = 0; z < resolution; z++)
+        {
+            for (int x = 0; x < resolution; x++)
+            {
+                float wx = origin.x + x * cellX;
+                float wz = origin.z + z * cellZ;
+                float dx = Mathf.Max(area.min.x - wx, 0f, wx - area.max.x);
+                float dz = Mathf.Max(area.min.z - wz, 0f, wz - area.max.z);
+                float d = Mathf.Sqrt(dx * dx + dz * dz);
+                if (d >= margin) continue;
+                float blend = d <= 0f ? 1f : 1f - Mathf.SmoothStep(0f, 1f, d / margin);
+                heights[z, x] = Mathf.Lerp(heights[z, x], goal, blend);
+            }
+        }
+
+        data.SetHeights(0, 0, heights);
+        terrain.GetComponent<TerrainCollider>().enabled = false;
+        terrain.GetComponent<TerrainCollider>().enabled = true;
+        Physics.SyncTransforms();
+    }
+
+    static void SettleOutposts(Terrain terrain)
+    {
+        var exploration = GameObject.Find("Exploracion");
+        if (exploration == null) return;
+        var collider = terrain.GetComponent<TerrainCollider>();
+
+        foreach (Transform post in exploration.transform)
+        {
+            if (!TryGround(collider, post.position, out float baseY)) continue;
+            post.position = new Vector3(post.position.x, baseY, post.position.z);
+            post.rotation = Quaternion.identity;
+
+            foreach (Transform child in post)
+            {
+                bool chest = child.name.StartsWith("Cofre_");
+                bool gunner = child.name.StartsWith("Tirador_");
+                if (!chest && !gunner) continue;
+                if (!TryGround(collider, child.position, out float y)) continue;
+                child.position = new Vector3(child.position.x, y + (chest ? 0.05f : 0.1f), child.position.z);
+            }
+        }
+    }
+
+    static bool TryGround(TerrainCollider collider, Vector3 position, out float y)
+    {
+        var ray = new Ray(new Vector3(position.x, 500f, position.z), Vector3.down);
+        if (collider.Raycast(ray, out RaycastHit hit, 1000f))
+        {
+            y = hit.point.y;
+            return true;
+        }
+        y = 0f;
+        return false;
     }
 
     static Vector3 OpenSouthGate(Transform root, Material trim, Material glow)
@@ -194,6 +276,11 @@ public static class TrailBuilder
         AssetDatabase.SaveAssets();
     }
 
+    static bool IsWalkableGround(Collider collider)
+    {
+        return collider is TerrainCollider || collider.name == "Suelo";
+    }
+
     static void PlaceSlabs(Transform root, Material stone, List<Vector3> samples)
     {
         var slabs = BuilderUtils.Group("Losas", root).transform;
@@ -205,7 +292,7 @@ public static class TrailBuilder
             if (forward.sqrMagnitude < 0.01f) forward = Vector3.forward;
 
             if (!Physics.Raycast(new Vector3(p.x, 300f, p.z), Vector3.down, out RaycastHit hit, 600f)) continue;
-            if (hit.collider.transform.IsChildOf(root)) continue;
+            if (!IsWalkableGround(hit.collider)) continue;
 
             var slab = BuilderUtils.Shape(PrimitiveType.Cube, "Losa", slabs, hit.point + Vector3.up * 0.03f, new Vector3(2.6f, 0.1f, 2f), stone, false);
             slab.transform.rotation = Quaternion.LookRotation(forward.normalized) * Quaternion.Euler(0f, (i % 3 - 1) * 4f, 0f);
@@ -226,7 +313,7 @@ public static class TrailBuilder
             Vector3 side = Vector3.Cross(Vector3.up, forward.normalized) * 3.6f * (i % 2 == 0 ? 1f : -1f);
             Vector3 spot = p + side;
             if (!Physics.Raycast(new Vector3(spot.x, 300f, spot.z), Vector3.down, out RaycastHit hit, 600f)) continue;
-            if (hit.collider.transform.IsChildOf(root)) continue;
+            if (!IsWalkableGround(hit.collider)) continue;
 
             var lamp = BuilderUtils.Group("Farol_" + i, lamps).transform;
             lamp.position = hit.point;

@@ -52,4 +52,43 @@ public static class DebugTools
     {
         return "(" + Mathf.Round(v.x) + ", " + Mathf.Round(v.y) + ", " + Mathf.Round(v.z) + ")";
     }
+
+    [MenuItem("Tools/Umbral/Reporte de cofres")]
+    static void ChestReport()
+    {
+        var terrain = Object.FindFirstObjectByType<Terrain>();
+        var lines = new System.Text.StringBuilder("Cofres:\n");
+        foreach (var chest in Object.FindObjectsByType<UpgradeChest>(FindObjectsSortMode.None))
+        {
+            Vector3 p = chest.transform.position;
+            float ground = terrain.SampleHeight(p) + terrain.transform.position.y;
+            lines.AppendLine(chest.name + " pos " + p.ToString("F1") + " terreno " + ground.ToString("F1") + " diferencia " + (p.y - ground).ToString("F1") + " escala " + chest.transform.lossyScale.ToString("F2"));
+        }
+        foreach (var chest in Object.FindObjectsByType<ChestBase>(FindObjectsSortMode.None))
+        {
+            Vector3 p = chest.transform.position;
+            float ground = terrain.SampleHeight(p) + terrain.transform.position.y;
+            lines.AppendLine(chest.name + " (jefe) pos " + p.ToString("F1") + " terreno " + ground.ToString("F1") + " activo " + chest.gameObject.activeInHierarchy);
+        }
+        Debug.Log(lines.ToString());
+    }
+
+    [MenuItem("Tools/Umbral/Limpiar scripts perdidos")]
+    static void CleanMissing()
+    {
+        var names = new System.Text.StringBuilder("Scripts perdidos quitados:\n");
+        int total = 0;
+        foreach (var go in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            int count = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go.gameObject);
+            if (count == 0) continue;
+            string path = go.name;
+            for (var up = go.parent; up != null; up = up.parent) path = up.name + "/" + path;
+            names.AppendLine(path + " x" + count + (PrefabUtility.IsPartOfPrefabInstance(go) ? " (prefab)" : ""));
+            if (!PrefabUtility.IsPartOfPrefabInstance(go)) GameObjectUtility.RemoveMonoBehavioursWithMissingScript(go.gameObject);
+            total += count;
+        }
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+        Debug.Log(names + "Total: " + total);
+    }
 }
