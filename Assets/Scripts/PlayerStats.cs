@@ -51,6 +51,11 @@ public class PlayerStats : MonoBehaviour
         }
 
         currentHP -= damage;
+<<<<<<< Updated upstream
+=======
+        GameFeedback.Play(GameFeedback.Cue.Hit);
+        DamageFeedback.Hit(damage);
+>>>>>>> Stashed changes
         currentHP = Mathf.Clamp(currentHP, 0f, maxHP);
 
         if (currentHP <= 0f)
@@ -83,11 +88,7 @@ public class PlayerStats : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        if (gameOverPanel != null)
-        {
-            gameOverPanel.SetActive(true);
-        }
-
+        DefeatScreen.Show(this);
         Time.timeScale = 0f;
     }
 
