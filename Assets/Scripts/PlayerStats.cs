@@ -18,6 +18,9 @@ public class PlayerStats : MonoBehaviour
     public int playerLevel = 1;
     public float baseStrength = 10f;
 
+    [Header("Progreso")]
+    public bool hasUmbralKey;
+
     [Header("UI Game Over")]
     public GameObject gameOverPanel;
 

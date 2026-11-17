@@ -26,10 +26,10 @@ public class Rock : MonoBehaviour
             return;
         }
 
-        BossStats boss = collision.gameObject.GetComponent<BossStats>();
-        if (boss != null)
+        IDamageable target = collision.gameObject.GetComponentInParent<IDamageable>();
+        if (target != null)
         {
-            boss.TakeDamage(damage);
+            target.TakeDamage(damage);
             Destroy(gameObject);
             return;
         }

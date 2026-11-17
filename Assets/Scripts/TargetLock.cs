@@ -38,7 +38,11 @@ public class TargetLock : MonoBehaviour
             }
         }
 
-        if (IsLockedOn && currentTarget != null)
+        if (IsLockedOn && currentTarget == null)
+        {
+            UnlockTarget();
+        }
+        else if (IsLockedOn)
         {
             float distance = Vector3.Distance(transform.position, currentTarget.position);
             if (distance > targetNoticeDistance || !currentTarget.gameObject.activeInHierarchy)
@@ -82,14 +86,15 @@ public class TargetLock : MonoBehaviour
 
         foreach (Collider hit in hits)
         {
-            if (hit.CompareTag("Boss"))
+            IDamageable enemy = hit.GetComponentInParent<IDamageable>();
+            if (enemy == null) continue;
+
+            Transform enemyTransform = ((Component)enemy).transform;
+            float distance = Vector3.Distance(transform.position, enemyTransform.position);
+            if (distance < closestDistance)
             {
-                float distance = Vector3.Distance(transform.position, hit.transform.position);
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    closestTarget = hit.transform;
-                }
+                closestDistance = distance;
+                closestTarget = enemyTransform;
             }
         }
 

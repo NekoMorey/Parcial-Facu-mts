@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private PlayerStats playerStats;
     private TargetLock targetLock;
+    private PlayerAnimation playerAnimation;
     private Camera mainCamera;
 
     [Header("Movimiento")]
@@ -45,12 +46,15 @@ public class PlayerController : MonoBehaviour
     public GameObject pauseMenuPanel;
     [HideInInspector] public bool isPaused = false;
 
+    public bool IsGrounded => isGrounded;
+
     void Start()
     {
         controller = GetComponent<CharacterController>();
         rb = GetComponent<Rigidbody>();
         playerStats = GetComponent<PlayerStats>() ?? FindFirstObjectByType<PlayerStats>();
         targetLock = GetComponent<TargetLock>() ?? FindFirstObjectByType<TargetLock>();
+        playerAnimation = GetComponent<PlayerAnimation>();
         mainCamera = Camera.main;
 
         if (controller == null)
@@ -90,13 +94,13 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (!isPaused && Input.GetMouseButtonDown(0))
+        bool gameEnded = !isPaused && Time.timeScale == 0f;
+
+        if (!isPaused && !gameEnded && Input.GetMouseButtonDown(0))
         {
             if (Cursor.lockState != CursorLockMode.Locked)
                 LockCursor();
         }
-
-        bool gameEnded = !isPaused && Time.timeScale == 0f;
 
         if (Input.GetKeyDown(KeyCode.Escape) && !gameEnded)
             TogglePause();
@@ -305,7 +309,8 @@ public class PlayerController : MonoBehaviour
         Vector3 shootDirection;
         if (target != null)
         {
-            Vector3 targetCenter = target.position + Vector3.up * 1.0f;
+            Collider targetCollider = target.GetComponent<Collider>();
+            Vector3 targetCenter = targetCollider != null ? targetCollider.bounds.center : target.position + Vector3.up;
             shootDirection = (targetCenter - safeSpawnPos).normalized;
         }
         else
@@ -316,6 +321,7 @@ public class PlayerController : MonoBehaviour
         Quaternion spawnRot = Quaternion.LookRotation(shootDirection);
         GameObject projectile = Instantiate(rockPrefab, safeSpawnPos, spawnRot);
         GameFeedback.Play(GameFeedback.Cue.Shoot);
+        if (playerAnimation != null) playerAnimation.Throw();
         Rigidbody rockRb = projectile.GetComponent<Rigidbody>();
 
         if (rockRb != null)
@@ -349,6 +355,7 @@ public class PlayerController : MonoBehaviour
         isInvulnerable = true;
         GameFeedback.Play(GameFeedback.Cue.Dodge);
         GameFeedback.Burst(transform.position, new Color(0.45f, 0.78f, 1f), 12, 0.13f);
+        if (playerAnimation != null) playerAnimation.Dodge();
 
         if (mainCamera == null)
             mainCamera = Camera.main;
