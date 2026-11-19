@@ -31,15 +31,6 @@ public class MenuPrincipal : MonoBehaviour
         Build();
     }
 
-    void Update()
-    {
-        if (!Cursor.visible || Cursor.lockState != CursorLockMode.None)
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
-    }
-
     void Build()
     {
         var canvas = gameObject.AddComponent<Canvas>();
