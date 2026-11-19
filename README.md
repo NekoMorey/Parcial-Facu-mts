@@ -144,7 +144,7 @@ Parcial-Facu-mts/
 
 ## 👥 Autores y Datos Académicos
 
-* **Estudiante / Desarrollador:** Facundo Morey ([@NekoMorey](https://github.com/NekoMorey))
+* **Estudiante / Desarrollador:** Nicolas Morey ([@NekoMorey](https://github.com/NekoMorey))
 * **Materia / Asignatura:** Desarrollo de Videojuegos / Motores Gráficos
-* **Institución:** Facultad / Universidad
+* **Institución:** Facultad / Universidad UTN 
 * **Año / Ciclo Lectivo:** 2026
