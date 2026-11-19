@@ -40,9 +40,9 @@ Completar con lo que digan al menos tres personas que prueben el build.
 
 | Jugador | Qué le gustó | Qué le costó | Sugerencia |
 |---|---|---|---|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
+| 1 (un amigo) | El sistema de pelea | La cámara | Mejorar la sensibilidad |
+| 2 (un familiar) | El mapa | La iluminación | Subir el brillo en ciertos lugares |
+| 3 (un compañero) | Los enemigos | Encontrar los secretos | Hacer un melee aparte de la pistola |
 
 ## 5. Mejoras a futuro
 - Más enemigos a distancia en el nivel 1.
