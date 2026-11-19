@@ -1,7 +1,7 @@
 # Documento de High Concept
 
 **Proyecto:** *El Guardián del Umbral*  
-**Instancia Evaluativa:** Parcial 1 — Documento Conceptual y Prototipo Jugable  
+**Instancia:** Parcial 1, documento conceptual y prototipo. El diseño actualizado está en `Docs/GDD_Segundo_Parcial.md`  
 **Asignatura:** Desarrollo de Videojuegos / Motores Gráficos  
 **Ciclo Lectivo:** 2026  
 
@@ -9,9 +9,9 @@
 
 ## 1. Datos de la Entrega
 
-* **Título del Videojuego:** *El Guardián del Umbral* (Título de trabajo: *Threshold Guardian*)
+* **Título del Videojuego:** *El Guardián del Umbral* 
 * **Nombre del Equipo:** Morey Game Studio
-* **Integrantes:** Facundo Morey *(añadir integrantes adicionales si corresponde)*
+* **Integrantes:** Nicolas Gabriel Morey *(añadir integrantes adicionales si corresponde)*
 * **Motor y Plataforma:** Unity 6 (`6000.3.x LTS`), PC (Teclado y Ratón)
 * **Perspectiva:** Tercera Persona (Cámara orbital dinámica y sistema de Lock-On con Cinemachine)
 * **Género Principal:** Acción / Aventura
@@ -165,8 +165,8 @@ Gobernado por `NavMeshAgent` y una máquina de comportamiento por rangos de dist
 | Rol | Responsabilidades en el Proyecto |
 | :--- | :--- |
 | **Producción y Gestión** | Definición del alcance del prototipo, planificación de hitos (Parcial 1 y 2) y control de requerimientos académicos. |
-| **Programación de Jugabilidad** | Control del personaje (`PlayerController`), físicas balísticas (`Rock`), máquina de estados de estamina/salud (`PlayerStats`) e interfaces (`IInteractable`). |
-| **Programación de IA y Sistemas** | Lógica de comportamiento del Boss con NavMesh (`BossAI`), gestión de vida (`BossStats`) y HUD contextual (`HUDManager`). |
+| **Programación de Jugabilidad** | Control del personaje (`ControlJugador`), físicas balísticas (`Proyectil`), máquina de estados de estamina/salud (`EstadisticasJugador`) e interfaces (`IInteractuable`). |
+| **Programación de IA y Sistemas** | Lógica de comportamiento del Boss con NavMesh (`IAJefe`), gestión de vida (`VidaJefe`) y HUD contextual (`GestorHUD`). |
 | **Diseño de Juego (*Game Design*)** | Calibración de velocidades, costes de estamina, ventanas de invulnerabilidad, curvas de daño y core loop. |
 | **Diseño de Niveles (*Level Design*)** | Estructuración espacial de las tres salas (Lobby, Parkour y Arena) y ubicación de obstáculos y puntos de interés. |
 | **Cámara y Arte Técnico** | Configuración de Cinemachine, suavizado de colisiones (*Deoccluder*), iluminación y shaders URP. |

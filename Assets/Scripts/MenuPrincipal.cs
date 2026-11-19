@@ -69,7 +69,7 @@ public class MenuPrincipal : MonoBehaviour
         credits = Panel("Creditos");
         Label(credits.transform, "CRÉDITOS", 0, 190, 54, Color.white);
         Label(credits.transform,
-            "Diseño y programación: Facundo Morey (NekoMorey)\nMotor: Unity 6\nMúsica y efectos generados por código",
+            "Diseño y programación: Nicolas Gabriel Morey (NekoMorey)\nMotor: Unity 6\nMúsica y efectos generados por código",
             0, 40, 28, new Color(1f, 1f, 1f, 0.9f), 520);
         Button(credits.transform, "Volver", -190, () => Switch(home));
 
