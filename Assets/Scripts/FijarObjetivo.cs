@@ -12,6 +12,9 @@ public class FijarObjetivo : MonoBehaviour
     public CinemachineCamera cinemachineCam;
     public Transform currentTarget;
 
+    [Header("Camara")]
+    public float multiplicadorSensibilidad = 4f;
+
     public bool IsLockedOn { get; private set; } = false;
 
     private CinemachineOrbitalFollow orbitalFollow;
@@ -21,7 +24,16 @@ public class FijarObjetivo : MonoBehaviour
         if (cinemachineCam != null)
         {
             orbitalFollow = cinemachineCam.GetComponent<CinemachineOrbitalFollow>();
+            SubirSensibilidad();
         }
+    }
+
+    void SubirSensibilidad()
+    {
+        var ejes = cinemachineCam.GetComponent<CinemachineInputAxisController>();
+        if (ejes == null) return;
+        foreach (var control in ejes.Controllers)
+            control.Input.Gain *= multiplicadorSensibilidad;
     }
 
     void Update()
