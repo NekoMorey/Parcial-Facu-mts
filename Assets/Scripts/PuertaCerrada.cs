@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PuertaCerrada : MonoBehaviour
@@ -7,9 +8,21 @@ public class PuertaCerrada : MonoBehaviour
     public Vector3 openOffset = new Vector3(0f, -5.2f, 0f);
     public float openTime = 1.6f;
 
+    public static readonly List<PuertaCerrada> activas = new List<PuertaCerrada>();
+
     private Transform player;
     private EstadisticasJugador playerStats;
     private bool opening;
+
+    void OnEnable()
+    {
+        activas.Add(this);
+    }
+
+    void OnDisable()
+    {
+        activas.Remove(this);
+    }
 
     void Update()
     {

@@ -52,6 +52,8 @@ public class EstadisticasJugador : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
+        if (TomaCinematica.Running) return;
+
         ControlJugador controller = GetComponent<ControlJugador>();
         if (controller != null && controller.isInvulnerable)
         {

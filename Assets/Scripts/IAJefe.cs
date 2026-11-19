@@ -36,6 +36,9 @@ public class IAJefe : MonoBehaviour
     private GameObject slamMarker;
     private CapsuleCollider bodyCollider;
 
+    public float fallbackSpeed = 10f;
+    private float manualSpeed;
+    private float nextReport;
     private bool AgentReady => agent != null && agent.isOnNavMesh;
 
     void Start()
@@ -44,6 +47,9 @@ public class IAJefe : MonoBehaviour
         animator = GetComponent<Animator>();
         stats = GetComponent<VidaJefe>();
         bodyCollider = GetComponent<CapsuleCollider>();
+
+        if (agent != null && !agent.isOnNavMesh && NavMesh.SamplePosition(transform.position, out NavMeshHit cercano, 40f, NavMesh.AllAreas))
+            agent.Warp(cercano.position);
 
         if (agent != null) originalSpeed = agent.speed;
 
@@ -60,18 +66,32 @@ public class IAJefe : MonoBehaviour
     {
         KeepGrounded();
 
+        if (player != null && Time.time >= nextReport)
+        {
+            nextReport = Time.time + 2f;
+            Debug.Log("[Jefe] distancia " + Vector3.Distance(transform.position, player.position).ToString("F1") + " detectado " + isPlayerDetected + " navmesh " + AgentReady + " puerta " + PuertaBloqueando() + " cinematica " + TomaCinematica.Running + " ataque " + isAttacking + " pos " + transform.position);
+        }
+
         if (animator != null && agent != null)
-            animator.SetFloat("Velocidad", agent.velocity.magnitude);
+            animator.SetFloat("Velocidad", AgentReady ? agent.velocity.magnitude : manualSpeed);
+        manualSpeed = 0f;
 
         if (stats != null) stats.engaged = isPlayerDetected;
 
         if (TomaCinematica.Running)
         {
             if (AgentReady) agent.ResetPath();
+            attackCooldown = Mathf.Max(attackCooldown, 1f);
             return;
         }
 
         if (player == null || isAttacking) return;
+
+        if (PuertaBloqueando())
+        {
+            if (AgentReady) agent.isStopped = true;
+            return;
+        }
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         attackCooldown -= Time.deltaTime;
@@ -87,6 +107,15 @@ public class IAJefe : MonoBehaviour
 
         if (!enraged && stats != null && stats.currentHP <= stats.maxHP * enragedThreshold)
             EnterPhaseTwo();
+
+        if (!AgentReady && distanceToPlayer > attackRange)
+        {
+            if (distanceToPlayer >= chargeRange && attackCooldown <= 0f)
+                StartCoroutine(ChargeRoutine());
+            else
+                MoveWithoutNavMesh();
+            return;
+        }
 
         if (distanceToPlayer <= attackRange)
         {
@@ -113,7 +142,30 @@ public class IAJefe : MonoBehaviour
                 agent.speed = originalSpeed;
                 agent.SetDestination(player.position);
             }
+            else
+            {
+                MoveWithoutNavMesh();
+            }
         }
+    }
+
+    void MoveWithoutNavMesh()
+    {
+        LookAtPlayer();
+        Vector3 flat = player.position - transform.position;
+        flat.y = 0f;
+        float speed = fallbackSpeed * (enraged ? 1.3f : 1f);
+        transform.position += flat.normalized * speed * Time.deltaTime;
+        manualSpeed = speed;
+    }
+
+    bool PuertaBloqueando()
+    {
+        foreach (PuertaCerrada puerta in PuertaCerrada.activas)
+        {
+            if (Vector3.Distance(puerta.transform.position, transform.position) <= detectionRange) return true;
+        }
+        return false;
     }
 
     void KeepGrounded()
@@ -264,7 +316,14 @@ public class IAJefe : MonoBehaviour
 
         while (chargeTimer < 1.0f)
         {
+            if (TomaCinematica.Running) break;
             chargeTimer += Time.deltaTime;
+
+            if (!AgentReady)
+            {
+                transform.position += targetDirection * chargeSpeed * Time.deltaTime;
+                manualSpeed = chargeSpeed;
+            }
 
             if (!hitPlayer && Vector3.Distance(transform.position, player.position) <= 2.5f)
             {
